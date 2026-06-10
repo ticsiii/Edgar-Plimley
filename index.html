@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#15130f">
+<title>Edgar's Picture Book</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#15130f; --card:#221e18; --card2:#2b2620; --line:#3a342b;
+  --ink:#f0e6d2; --dim:#a89e8a; --red:#d64545; --red-dk:#a83232;
+  --gold:#d9a441; --blue:#7aa5d6; --green:#7fb069; --purple:#a98ad6;
+  --shadow:0 4px 14px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));
+  min-height:100vh; overscroll-behavior-y:contain;
+}
+h1,h2,h3,.hand{font-family:"Patrick Hand","Caveat",cursive;letter-spacing:.5px}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:20;background:linear-gradient(180deg,#1c1813,#15130f);
+  border-bottom:2px solid var(--red-dk);padding:10px 14px calc(8px) 14px;
+}
+header .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+header h1{font-size:1.5rem;color:var(--gold);line-height:1}
+header .sub{color:var(--dim);font-size:.74rem;margin-top:2px}
+header .sub em{color:var(--purple)}
+.restbtns{display:flex;gap:8px}
+.restbtn{
+  font-family:"Patrick Hand",cursive;font-size:.95rem;padding:7px 11px;border-radius:10px;
+  border:1.5px solid var(--line);background:var(--card);color:var(--ink);white-space:nowrap;
+}
+.restbtn.long{border-color:var(--red);color:#ffb3b3}
+
+/* ---------- layout ---------- */
+main{padding:12px;max-width:560px;margin:0 auto}
+section.tab{display:none}
+section.tab.active{display:block;animation:fadein .15s ease}
+@keyframes fadein{from{opacity:.4;transform:translateY(4px)}to{opacity:1}}
+.card{
+  background:var(--card);border:1.5px solid var(--line);border-radius:16px;
+  padding:13px 14px;margin-bottom:12px;box-shadow:var(--shadow);
+}
+.card h2{color:var(--gold);font-size:1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.card h2 .grow{flex:1}
+.muted{color:var(--dim);font-size:.84rem}
+
+/* info button */
+.info{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:21px;height:21px;border-radius:50%;border:1.5px solid var(--blue);
+  color:var(--blue);font-size:.72rem;font-weight:700;vertical-align:middle;flex:none;
+  font-family:system-ui;
+}
+
+/* ---------- pips ---------- */
+.piprow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:6px 0}
+.pip{
+  width:34px;height:34px;border-radius:50%;border:2.5px solid var(--gold);
+  background:transparent;transition:all .12s;position:relative;flex:none;
+}
+.pip.full{background:radial-gradient(circle at 35% 30%,#f3cf7e,var(--gold) 70%);box-shadow:0 0 8px rgba(217,164,65,.5)}
+.pip.sp{border-color:var(--purple)}
+.pip.sp.full{background:radial-gradient(circle at 35% 30%,#cdb6ee,var(--purple) 70%);box-shadow:0 0 8px rgba(169,138,214,.5)}
+.pip.use{border-color:var(--blue)}
+.pip.use.full{background:radial-gradient(circle at 35% 30%,#b7d3f2,var(--blue) 70%);box-shadow:0 0 8px rgba(122,165,214,.5)}
+.piplabel{font-size:.84rem;color:var(--dim);min-width:84px}
+
+/* ---------- HP ---------- */
+.hpwrap{display:flex;align-items:center;gap:8px;justify-content:center}
+.hpnum{font-family:"Patrick Hand",cursive;font-size:2.4rem;line-height:1;flex:1;text-align:center;min-width:0}
+.hpnum small{font-size:1.15rem;color:var(--dim)}
+.hpbtn{
+  width:44px;height:44px;border-radius:13px;font-size:1.35rem;font-family:"Patrick Hand",cursive;
+  border:1.5px solid var(--line);background:var(--card2);flex:none;
+}
+.hpbtn.dmg{color:#ff9d9d;border-color:var(--red-dk)}
+.hpbtn.heal{color:#a9d9a0;border-color:#4d7a42}
+.hpbar{height:10px;border-radius:6px;background:#3a2020;margin-top:10px;overflow:hidden}
+.hpbar div{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--red),#e07b4f);transition:width .25s}
+.subrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chip{
+  border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;font-size:.82rem;
+  background:var(--card2);color:var(--ink);display:inline-flex;align-items:center;gap:6px;
+}
+.chip.on{border-color:var(--green);color:#c9e8bf;box-shadow:0 0 8px rgba(127,176,105,.3)}
+.chip.warn{border-color:var(--gold);color:#f0d9a8}
+
+/* concentration banner */
+#concBanner{
+  display:none;margin-bottom:12px;border:1.5px solid var(--purple);border-radius:14px;
+  background:linear-gradient(90deg,#2a2335,#221e18);padding:10px 14px;
+  align-items:center;gap:10px;width:100%;text-align:left;
+}
+#concBanner.show{display:flex}
+#concBanner b{color:var(--purple)}
+
+/* ---------- spells ---------- */
+.filters{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap}
+.fbtn{
+  border:1.5px solid var(--line);border-radius:99px;padding:6px 14px;font-size:.84rem;
+  background:var(--card);color:var(--dim);
+}
+.fbtn.on{background:var(--red);border-color:var(--red);color:#fff}
+.spell{padding:0;overflow:hidden}
+.spellhead{width:100%;text-align:left;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.spellhead .lvl{
+  flex:none;width:38px;height:38px;border-radius:11px;background:var(--card2);
+  border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-family:"Patrick Hand",cursive;font-size:.92rem;color:var(--gold);
+}
+.spellhead .nm{flex:1;min-width:0}
+.spellhead .nm b{font-family:"Patrick Hand",cursive;font-size:1.16rem;font-weight:400;display:block}
+.spellhead .nm span{font-size:.74rem;color:var(--dim)}
+.spellhead .quick{flex:none;text-align:right;font-size:.8rem;color:var(--blue);font-weight:600}
+.spellbody{display:none;border-top:1.5px dashed var(--line);padding:12px 14px}
+.spell.open .spellbody{display:block}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
+.tag{font-size:.7rem;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--dim)}
+.tag.c{border-color:var(--purple);color:var(--purple)}
+.tag.r{border-color:var(--green);color:var(--green)}
+.desc{font-size:.9rem;line-height:1.5;margin-bottom:8px}
+.tip{
+  font-size:.84rem;line-height:1.45;background:var(--card2);border-left:3px solid var(--gold);
+  border-radius:0 9px 9px 0;padding:8px 10px;margin-bottom:9px;color:#e6d9bd;
+}
+.castrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.castbtn{
+  font-family:"Patrick Hand",cursive;font-size:.98rem;padding:8px 14px;border-radius:11px;
+  background:var(--red);color:#fff;border:1.5px solid var(--red);
+}
+.castbtn.alt{background:transparent;color:var(--gold);border-color:var(--gold)}
+.castbtn.roll{background:transparent;color:var(--blue);border-color:var(--blue)}
+.castbtn:disabled{opacity:.35}
+
+/* ---------- abilities tab ---------- */
+.abil .uses{display:flex;align-items:center;gap:9px;margin-top:6px}
+.spendbtn{
+  font-family:"Patrick Hand",cursive;font-size:.94rem;padding:7px 13px;border-radius:11px;
+  background:transparent;border:1.5px solid var(--purple);color:var(--purple);
+}
+.spendbtn:disabled{opacity:.35}
+
+/* ---------- stats ---------- */
+.abilgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.abox{
+  background:var(--card2);border:1.5px solid var(--line);border-radius:13px;
+  text-align:center;padding:9px 4px;
+}
+.abox .an{font-size:.72rem;color:var(--dim);letter-spacing:1px}
+.abox .am{font-family:"Patrick Hand",cursive;font-size:1.7rem;line-height:1.1}
+.abox .as{font-size:.74rem;color:var(--dim)}
+.abox .sv{font-size:.74rem;margin-top:2px;color:var(--blue)}
+.abox .sv.p{color:var(--gold);font-weight:700}
+.skill{
+  width:100%;display:flex;align-items:center;gap:9px;padding:8px 4px;text-align:left;
+  border-bottom:1px dashed var(--line);font-size:.92rem;
+}
+.skill:last-child{border-bottom:none}
+.skill .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--dim);flex:none}
+.skill .dot.p{background:var(--gold);border-color:var(--gold)}
+.skill .ab{color:var(--dim);font-size:.72rem;width:30px;flex:none}
+.skill .name{flex:1}
+.skill .bonus{font-family:"Patrick Hand",cursive;font-size:1.1rem;color:var(--blue)}
+table.wpn{width:100%;border-collapse:collapse;font-size:.85rem}
+table.wpn td,table.wpn th{padding:6px 4px;text-align:left;border-bottom:1px dashed var(--line)}
+table.wpn th{color:var(--dim);font-weight:600;font-size:.74rem}
+
+/* ---------- bottom nav ---------- */
+nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:30;display:flex;
+  background:#1c1813;border-top:2px solid var(--red-dk);
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom)) 4px;
+}
+nav button{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  color:var(--dim);font-size:.68rem;padding:5px 0;border-radius:10px;
+}
+nav button .ic{font-size:1.3rem;line-height:1}
+nav button.on{color:var(--gold)}
+
+/* ---------- sheets & toast ---------- */
+#overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;display:none;
+}
+#overlay.show{display:block}
+#sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;transform:translateY(105%);
+  transition:transform .22s ease;background:var(--card);border-radius:20px 20px 0 0;
+  border-top:2px solid var(--gold);padding:18px 18px calc(24px + env(safe-area-inset-bottom)) 18px;
+  max-height:75vh;overflow-y:auto;max-width:560px;margin:0 auto;
+}
+#sheet.show{transform:translateY(0)}
+#sheet h3{color:var(--gold);font-size:1.3rem;margin-bottom:8px}
+#sheet .body{font-size:.92rem;line-height:1.55;white-space:pre-line}
+#sheet .actions{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+#toast{
+  position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
+  background:#0e0c09;border:1.5px solid var(--gold);color:var(--ink);border-radius:13px;
+  padding:11px 17px;font-size:.9rem;opacity:0;transition:all .2s;z-index:60;pointer-events:none;
+  max-width:90vw;text-align:center;box-shadow:var(--shadow);line-height:1.4;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.doodle{color:var(--dim);font-size:.76rem;font-style:italic;margin-top:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <div>
+      <h1>Edgar's Picture Book ✦</h1>
+      <div class="sub">Edgar Plimley · Orc Sorcerer 4 · Wild Magic · <em>(definitely a Wizard)</em></div>
+    </div>
+    <div class="restbtns">
+      <button class="restbtn" onclick="confirmRest('short')">☕ Short</button>
+      <button class="restbtn long" onclick="confirmRest('long')">🌙 Long</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <button id="concBanner" onclick="endConc()"></button>
+
+  <!-- ============ HUB ============ -->
+  <section class="tab active" id="tab-hub"></section>
+
+  <!-- ============ SPELLS ============ -->
+  <section class="tab" id="tab-spells">
+    <div class="filters" id="spellFilters"></div>
+    <div id="spellList"></div>
+  </section>
+
+  <!-- ============ ABILITIES ============ -->
+  <section class="tab" id="tab-abil"></section>
+
+  <!-- ============ STATS ============ -->
+  <section class="tab" id="tab-stats"></section>
+</main>
+
+<nav>
+  <button data-tab="hub" class="on"><span class="ic">🔥</span>Hub</button>
+  <button data-tab="spells"><span class="ic">📖</span>Spells</button>
+  <button data-tab="abil"><span class="ic">✨</span>Abilities</button>
+  <button data-tab="stats"><span class="ic">🎲</span>Stats</button>
+</nav>
+
+<div id="overlay" onclick="closeSheet()"></div>
+<div id="sheet"></div>
+<div id="toast"></div>
+
+<script>
+/* =================== STATE =================== */
+const MAX = {hp:30, slots1:4, slots2:3, sp:4, innate:2, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
+const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, innate:2, innateActive:false, tides:1,
+  familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false};
+let S = load();
+function load(){ try{ const s = JSON.parse(localStorage.getItem('edgarState')); return s ? Object.assign({},DEFAULT,s) : {...DEFAULT}; }catch(e){ return {...DEFAULT}; } }
+function save(){ localStorage.setItem('edgarState', JSON.stringify(S)); }
+function set(patch){ Object.assign(S, patch); save(); renderAll(); }
+
+/* =================== GLOSSARY =================== */
+const TERMS = {
+  spellSlots:{t:"Spell Slots",b:"Spell slots are your magical fuel. Casting a 1st- or 2nd-level spell spends one slot of that level (or higher). Cantrips are free — cast them all day.\n\nYou get all slots back on a Long Rest. Tap a glowing pip to spend it, tap an empty one to give it back (misclicks happen)."},
+  sorceryPoints:{t:"Sorcery Points",b:"Your sorcerer-only resource (Edgar thinks it's 'wizard juice'). You have 4, refilled on a Long Rest.\n\nSpend them on Metamagic (Quickened = 2, Twinned = 1) or convert them into extra spell slots with Font of Magic (Bonus Action): a 1st-level slot costs 2 points, a 2nd-level slot costs 3. You can also melt a spell slot into points equal to its level."},
+  concentration:{t:"Concentration",b:"Some spells (marked C) stay active only while you concentrate. You can concentrate on ONE spell at a time — casting a second concentration spell ends the first.\n\nIf you take damage while concentrating, make a CON save (DC 10 or half the damage, whichever is higher) or the spell ends. Edgar's CON save is +5, so he's pretty good at this!"},
+  ritual:{t:"Ritual",b:"Spells marked R can be cast as a ritual: it takes 10 extra minutes but costs NO spell slot. Great outside combat.\n\nEdgar's Detect Magic is a ritual — when there's no rush, always ritual-cast it for free."},
+  saveDC:{t:"Spell Save DC",b:"When your spell forces enemies to make a saving throw (like Thunderwave), they roll a d20 + their save bonus against your Spell Save DC of 13. Roll under 13 = they fail and eat the full effect.\n\nYour DC = 8 + 2 (proficiency) + 3 (Charisma)."},
+  spellAttack:{t:"Spell Attack +5",b:"Some spells (Fire Bolt, Chromatic Orb...) require an attack roll: roll a d20, add +5, and compare to the target's Armor Class (AC). Equal or higher = hit, roll damage!\n\nYour +5 = +2 proficiency +3 Charisma."},
+  components:{t:"Components (V/S/M)",b:"V = Verbal: you must speak the incantation (doesn't work if silenced/gagged).\nS = Somatic: you need a free hand for gestures.\nM = Material: you need your arcane focus or specific ingredients.\n\nMisty Step is V-only — Edgar can cast it with his hands tied, mid-mouthful of mystery stew."},
+  turn:{t:"Your Turn: what can you do?",b:"On each of your turns you get:\n\n• MOVE — up to 30 ft (can split around your action).\n• 1 ACTION — cast a spell (1A), Dash, Dodge, Help, Hide, use an object...\n• 1 BONUS ACTION — only if something grants one: Misty Step, Quickened Spell, Innate Sorcery, Adrenaline Rush.\n• 1 REACTION — one per round, on anyone's turn, when a trigger says so (e.g. an Opportunity Attack when an enemy walks away from you).\n\n⚠️ 2024 rule: if you cast a leveled spell as a Bonus Action (e.g. Misty Step), your Action that turn can only be a cantrip."},
+  advantage:{t:"Advantage / Disadvantage",b:"Advantage: roll TWO d20s, keep the higher. Disadvantage: roll two, keep the lower.\n\nEdgar gets advantage from: Tides of Chaos (once until it recharges), Innate Sorcery (on Sorcerer spell attacks while active), his familiar using the Help action, attacking a Prone enemy from melee, and more. They don't stack — two sources of advantage is still just two dice."},
+  tempHP:{t:"Temporary HP",b:"A buffer of bonus hit points that absorbs damage before your real HP. They don't stack — if you get new temp HP, keep the higher number. They vanish after a Long Rest.\n\nEdgar gets 2 temp HP whenever he uses Adrenaline Rush."},
+  inspiration:{t:"Heroic Inspiration",b:"If you have Heroic Inspiration, you can spend it to REROLL any die you just rolled (you must keep the new result). The DM awards it for great roleplay — so keep licking suspicious things.\n\nYou can only hold one at a time."},
+  hitDice:{t:"Hit Dice",b:"Your personal healing pool: 4 six-sided dice (one per level). During a Short Rest you can spend any number of them — each die heals 1d6 + 3 (your CON).\n\nYou regain HALF your hit dice (2) at the end of each Long Rest."},
+  proficiency:{t:"Proficiency Bonus",b:"A flat +2 (at level 4) added to anything you're 'proficient' in: Arcana & Persuasion checks, CON & CHA saves, spell attacks, and your save DC. It grows as you level (+3 at level 5)."},
+  passive:{t:"Passive Scores",b:"What you notice without actively rolling — the DM checks these secretly. Passive score = 10 + skill bonus.\n\nEdgar's Passive Perception is 9 (WIS −1)... he will absolutely not see the ambush coming. But he WILL see the interesting mushroom."},
+  surge:{t:"Wild Magic Surge",b:"Edgar's magic is chaos in a trench coat. Whenever he casts a leveled spell (not cantrips), the DM can ask for a d20 roll — on a 1, magic bursts out: roll on the Wild Magic Surge table (PHB 2024, p. 144) for a random effect.\n\nAfter using Tides of Chaos, the next leveled spell automatically surges (no d20 needed) — and that surge recharges Tides of Chaos. Chaos feeds chaos!"},
+  darkvision:{t:"Darkvision 120 ft",b:"Edgar sees in total darkness up to 120 ft as if it were dim light (in shades of grey — no color). That's double what most races get. Perfect for finding collectible rocks in caves."},
+  ac:{t:"Armor Class (AC)",b:"How hard you are to hit. Enemies hit you if their attack roll ≥ your AC.\n\nEdgar wears no armor: base AC 11 (10 + DEX). With Mage Armor active it becomes 14 (13 + DEX). CAST MAGE ARMOR EVERY MORNING. Edgar calls it his 'invisible apron'."},
+  relentless:{t:"Relentless Endurance",b:"Once per Long Rest, when damage would drop you to 0 HP (but not kill you outright), you drop to 1 HP instead and keep fighting. Orcs are built different.\n\nThe app reminds you when your HP hits 0 — tell your DM before falling unconscious!"},
+};
+
+/* =================== SPELLS =================== */
+const SPELLS = [
+{id:'firebolt',n:'Fire Bolt',lv:0,src:'Sorcerer',time:'1 Action',rng:'120 ft',atk:5,dmg:'1d10',dtype:'fire',comp:'V/S',dur:'Instant',
+ d:"Hurl a mote of fire at a creature or object. Make a ranged spell attack (d20 +5 vs the target's AC). On a hit: 1d10 fire damage. Flammable objects that aren't worn or carried catch fire.",
+ tip:"Your bread-and-butter attack — free, forever, 120 ft. When in doubt, Fire Bolt."},
+{id:'magehand',n:'Mage Hand',lv:0,src:'Magic Initiate (Wizard)',time:'1 Action',rng:'30 ft',comp:'V/S',dur:'1 minute',
+ d:"A spectral floating hand appears within 30 ft for 1 minute. As a Magic action you can move it up to 30 ft and make it manipulate objects: open an unlocked door, pour out a vial, retrieve an item, carry up to 10 pounds. It can't attack or activate magic items.",
+ tip:"Edgar's favorite: poke the suspicious thing from 30 feet away INSTEAD of licking it. (He still licks it afterwards.)"},
+{id:'minorillusion',n:'Minor Illusion',lv:0,src:'Magic Initiate (Wizard)',time:'1 Action',rng:'30 ft',comp:'S/M',dur:'1 minute',
+ d:"Create either a SOUND (whisper to scream, anywhere in range) or a silent IMAGE of an object no bigger than a 5-ft cube, lasting 1 minute. Physical interaction reveals an image is fake (things pass through it). A creature that takes the Study action can see through it with an Intelligence (Investigation) check vs DC 13.",
+ tip:"Distraction machine: monster growls behind the guards, a fake crate to hide behind, a fake plate of delicious meat. No verbal component — castable silently!"},
+{id:'sorcburst',n:'Sorcerous Burst',lv:0,src:'Sorcerer',time:'1 Action',rng:'120 ft',atk:5,dmg:'1d8',dtype:'your choice',comp:'V/S',dur:'Instant',
+ d:"Hurl chaotic raw magic: ranged spell attack (+5). On a hit: 1d8 damage of a type YOU choose — acid, cold, fire, lightning, poison, psychic, or thunder. If you roll an 8 on the d8, roll one extra d8 and add it (this can chain, up to 3 extra dice — your CHA modifier).",
+ tip:"Pick the damage type the enemy hates. Slightly weaker than Fire Bolt on average, but exploding dice are VERY Edgar."},
+{id:'truestrike',n:'True Strike',lv:0,src:'Sorcerer',time:'1 Action',rng:'Self',comp:'S/M (a weapon)',dur:'Instant',
+ d:"Guided by a flash of insight, make one attack with the weapon used as the spell's component — using CHARISMA instead of Strength/Dexterity for the attack and damage rolls. For Edgar: +5 to hit and +3 to damage. The damage can be radiant instead of the weapon's normal type.",
+ tip:"Turns your spear into a +5 attack (instead of +3). Use when you must stab something and want your good stat doing it."},
+{id:'chromatic',n:'Chromatic Orb',lv:1,src:'Sorcerer',time:'1 Action',rng:'90 ft',atk:5,dmg:'3d8',dmg2:'4d8',dtype:'your choice',comp:'V/S/M',dur:'Instant',
+ d:"Hurl a 4-inch sphere of energy: ranged spell attack (+5). On a hit: 3d8 damage of your chosen type — acid, cold, fire, lightning, poison, or thunder. If you roll the SAME number on two or more of the d8s, the orb leaps to a different target within 30 ft: make a new attack roll against it (and it can keep leaping while you keep rolling doubles).\n\nUpcast with a 2nd-level slot: 4d8 (and doubles are even more likely).",
+ tip:"Your big single-target hit. With 4 dice, doubles (and a bonus leap) happen surprisingly often. Edgar calls the leap 'seconds'."},
+{id:'detectmagic',n:'Detect Magic',lv:1,src:'Sorcerer',time:'1 Action (or Ritual: +10 min)',rng:'Self (30 ft)',comp:'V/S',dur:'10 min',conc:true,rit:true,
+ d:"For up to 10 minutes (concentration) you SENSE the presence of magic within 30 ft. As a Magic action, you can see a faint aura around any visible magical creature or object, and learn its school of magic.\n\nBlocked by 1 ft of stone, 1 inch of metal, a thin sheet of lead, or 3 ft of wood/dirt.",
+ tip:"Almost always RITUAL-cast this (10 extra minutes, zero slots). Before touching/licking the glowing thing: detect first. This is Edgar's 'science'."},
+{id:'familiar',n:'Find Familiar',lv:1,src:'Magic Initiate (Wizard)',time:'1 hour',rng:'10 ft',comp:'V/S/M',dur:'Until dismissed',free:'familiar',
+ d:"Summon a familiar spirit in animal form — Edgar's is an OWL. It acts on your initiative, can't attack, but can take other actions — most importantly HELP: it flutters at an enemy and gives the next ally attacking that enemy advantage.\n\nYou can communicate with it telepathically within 100 ft, and as a Magic action see through its eyes. It can deliver your touch-range spells. If it drops to 0 HP it vanishes; recast the spell to bring it back.\n\nFree to cast once per Long Rest (Magic Initiate); otherwise costs a 1st-level slot. Takes 1 hour to cast — do it in camp, not combat.",
+ tip:"The owl has Flyby: it can swoop in, Help (advantage for an ally!), and fly away without provoking attacks. Best wingman. Edgar feeds it experimental snacks."},
+{id:'magearmor',n:'Mage Armor',lv:1,src:'Sorcerer',time:'1 Action',rng:'Touch',comp:'V/S/M',dur:'8 hours',toggle:'mageArmor',
+ d:"Touch a willing creature who isn't wearing armor: its base AC becomes 13 + its DEX modifier for 8 hours. For Edgar that's AC 14 (instead of 11). No concentration needed.",
+ tip:"CAST THIS EVERY MORNING. 8 hours covers a whole adventuring day. The cast button below also flips your AC on the Hub."},
+{id:'thunderwave',n:'Thunderwave',lv:1,src:'Sorcerer',time:'1 Action',rng:'Self (15-ft cube)',sv:'CON 13',dmg:'2d8',dmg2:'3d8',dtype:'thunder',comp:'V/S',dur:'Instant',
+ d:"A wave of thunderous force erupts from you, filling a 15-ft cube (you're on one face of it). Every creature inside makes a CON save vs DC 13.\nFail: 2d8 thunder damage and pushed 10 ft away from you.\nSuccess: half damage, no push.\n\nUnsecured objects are also pushed, and the BOOM is audible 300 ft away.\n\nUpcast with a 2nd-level slot: 3d8.",
+ tip:"Your 'GET OFF ME' button when surrounded. Warning: it is LOUD — the whole dungeon will know. Also hits allies standing next to you, so yell first."},
+{id:'mistystep',n:'Misty Step',lv:2,src:'Sorcerer',time:'1 Bonus Action',rng:'Self',comp:'V only',dur:'Instant',
+ d:"Surrounded by silver mist, you TELEPORT up to 30 ft to an unoccupied spot you can SEE. It's a Bonus Action and only needs a Verbal component — works while grappled or with your hands full of soup.\n\n⚠️ 2024 rule: on a turn you cast a leveled spell as a Bonus Action, your Action can only be used to cast a cantrip (Fire Bolt is fine, Chromatic Orb is not).",
+ tip:"Escape grapples, cross chasms, hop through barred windows, skip the lava. Your panic button — try to keep one 2nd-level slot for it."},
+];
+
+/* =================== ABILITIES =================== */
+const ABILITIES = [
+{id:'innate',n:'Innate Sorcery',uses:'innate',per:'Long Rest',action:'1 Bonus Action · 1 minute',
+ d:"Unleash the simmering magic inside you for 1 minute: your Spell Save DC becomes 14 (+1), and you have ADVANTAGE on attack rolls with Sorcerer spells (Fire Bolt, Chromatic Orb, Sorcerous Burst).",
+ tip:"Pop this at the start of a serious fight — a minute is ~10 rounds, basically the whole battle.",activate:true},
+{id:'tides',n:'Tides of Chaos',uses:'tides',per:'Long Rest*',action:'Free — when you roll',
+ d:"Gain ADVANTAGE on one d20 roll of your choice: an attack roll, ability check, or saving throw.\n\nAfter you use it, your next leveled spell automatically triggers a Wild Magic Surge — and that surge gives Tides of Chaos back. Chaos feeds chaos.",
+ tip:"Use it generously! The 'cost' is a guaranteed surge, which for Edgar is basically a personality trait."},
+{id:'familiarUse',n:'Find Familiar — free cast',uses:'familiar',per:'Long Rest',action:'1 hour',
+ d:"Your Magic Initiate feat lets you cast Find Familiar once per Long Rest without spending a spell slot. (You can also cast it with a 1st-level slot if needed twice.)",
+ tip:"If the owl is alive and well, you don't need to recast — it sticks around indefinitely."},
+{id:'adrenaline',n:'Adrenaline Rush',uses:'adrenaline',per:'Short Rest',action:'1 Bonus Action',
+ d:"As a Bonus Action, take the Dash action (move your speed again — 30 extra ft) AND gain 2 Temporary HP. Orc blood runs hot. 2 uses, back on a Short or Long Rest.",
+ tip:"Chase the fleeing goblin, reach the dying friend, or sprint TOWARD the interesting smell. The temp HP is a free little shield — the button adds it to your Hub automatically."},
+{id:'relentless',n:'Relentless Endurance',uses:'relentless',per:'Long Rest',action:'Automatic',
+ d:"Once per Long Rest, when you're reduced to 0 HP but not killed outright, you drop to 1 HP instead. You stay on your feet.",
+ tip:"Don't forget this exists! When the DM says you're down, say 'actually...'. The app will also remind you at 0 HP."},
+];
+const META = [
+{n:'Quickened Spell',cost:2,
+ d:"Spend 2 Sorcery Points when casting a spell with a casting time of 1 Action: it becomes a BONUS ACTION for this casting.\n\n⚠️ You can't cast a leveled spell with your Action on the same turn — but a cantrip is fine. Classic combo: Quickened Chromatic Orb + Fire Bolt in one turn."},
+{n:'Twinned Spell',cost:1,
+ d:"Spend 1 Sorcery Point when casting a spell that can target an additional creature at a higher level: its effective level rises by 1 WITHOUT spending a higher slot.\n\nOf Edgar's current spells this is niche — it shines once he learns spells like Hold Person."},
+];
+
+/* =================== STATS DATA =================== */
+const ABS = [
+ {n:'STR',s:12,m:1,sv:1,p:false},{n:'DEX',s:12,m:1,sv:1,p:false},{n:'CON',s:16,m:3,sv:5,p:true},
+ {n:'INT',s:13,m:1,sv:1,p:false},{n:'WIS',s:8,m:-1,sv:-1,p:false},{n:'CHA',s:16,m:3,sv:5,p:true},
+];
+const SKILLS = [
+ ['Acrobatics','DEX',1,false],['Animal Handling','WIS',-1,false],['Arcana','INT',3,true],
+ ['Athletics','STR',1,false],['Deception','CHA',3,false],['History','INT',1,false],
+ ['Insight','WIS',-1,false],['Intimidation','CHA',3,false],['Investigation','INT',1,false],
+ ['Medicine','WIS',-1,false],['Nature','INT',1,false],['Perception','WIS',-1,false],
+ ['Performance','CHA',3,false],['Persuasion','CHA',5,true],['Religion','INT',1,false],
+ ['Sleight of Hand','DEX',1,false],['Stealth','DEX',1,false],['Survival','WIS',-1,false],
+];
+
+/* =================== HELPERS =================== */
+const $ = id => document.getElementById(id);
+const fmt = n => (n>=0?'+':'')+n;
+let toastTimer;
+function toast(msg,ms=2600){ const t=$('toast'); t.innerHTML=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),ms); }
+function roll(sides){ return 1+Math.floor(Math.random()*sides); }
+function rollDice(expr){ // "3d8" -> {total, rolls}
+  const [n,s] = expr.split('d').map(Number); const rolls=[];
+  for(let i=0;i<n;i++) rolls.push(roll(s));
+  return {total:rolls.reduce((a,b)=>a+b,0), rolls};
+}
+function infoBtn(term){ return `<button class="info" onclick="event.stopPropagation();showTerm('${term}')">i</button>`; }
+
+/* =================== SHEET / MODAL =================== */
+function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
+function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
+function showTerm(key){ const t=TERMS[key]; if(!t) return;
+  openSheet(`<h3>${t.t}</h3><div class="body">${t.b}</div>
+  <div class="actions"><button class="castbtn alt" onclick="closeSheet()">Got it!</button></div>`);
+}
+function confirmRest(kind){
+  const long = kind==='long';
+  openSheet(`<h3>${long?'🌙 Long Rest':'☕ Short Rest'}</h3>
+  <div class="body">${long
+    ? 'A full night’s sleep (8 hours). Restores: HP to 30, ALL spell slots, all 4 Sorcery Points, Innate Sorcery, Tides of Chaos, Find Familiar free cast, Relentless Endurance, Adrenaline Rush, and 2 Hit Dice. Clears temp HP, Mage Armor and concentration.'
+    : 'A 1-hour breather. Restores Adrenaline Rush (2 uses). You may also spend Hit Dice to heal — use the Spend Hit Die button on the Hub during/after the rest.'}</div>
+  <div class="actions">
+    <button class="castbtn" onclick="doRest('${kind}')">Take the rest</button>
+    <button class="castbtn alt" onclick="closeSheet()">Cancel</button>
+  </div>`);
+}
+function doRest(kind){
+  closeSheet();
+  if(kind==='long'){
+    set({hp:MAX.hp, temp:0, slots1:MAX.slots1, slots2:MAX.slots2, sp:MAX.sp, innate:MAX.innate,
+      innateActive:false, tides:MAX.tides, familiar:MAX.familiar, relentless:MAX.relentless,
+      adrenaline:MAX.adrenaline, hitDice:Math.min(MAX.hitDice, S.hitDice+2), mageArmor:false, conc:null});
+    toast('🌙 Long Rest complete. Everything restored!<br><b>Don’t forget to cast Mage Armor!</b>',4000);
+  } else {
+    set({adrenaline:MAX.adrenaline});
+    toast('☕ Short Rest done — Adrenaline Rush restored.<br>Spend Hit Dice on the Hub to heal.',3600);
+  }
+}
+
+/* =================== ACTIONS =================== */
+function hpChange(n){
+  if(n<0){ // damage: temp HP absorbs first
+    let dmg=-n;
+    const absorbed=Math.min(S.temp,dmg); S.temp-=absorbed; dmg-=absorbed;
+    S.hp=Math.max(0,S.hp-dmg);
+    if(S.hp===0){
+      toast(S.relentless>0
+        ? '💀 0 HP! <b>Relentless Endurance:</b> you can drop to 1 HP instead (1/Long Rest) — tell your DM, then tap it on the Abilities tab!'
+        : '💀 0 HP — you fall unconscious and start making Death Saves.',6000);
+    }
+    if(S.conc && dmg>0 && S.hp>0){ toast(`⚠️ Concentrating on <b>${S.conc}</b> — make a CON save (DC ${Math.max(10,Math.ceil((absorbed+dmg)/2))}) or it ends! Your CON save: +5`,5000); }
+  } else {
+    S.hp=Math.min(MAX.hp,S.hp+n);
+  }
+  save(); renderAll();
+}
+function spendHitDie(){
+  if(S.hitDice<=0){ toast('No Hit Dice left — Long Rest gives back 2.'); return; }
+  const r=roll(6); S.hitDice--; S.hp=Math.min(MAX.hp,S.hp+r+3);
+  save(); renderAll(); toast(`🎲 Hit Die: rolled ${r} +3 CON = <b>healed ${r+3} HP</b>`);
+}
+function togglePip(key,i){
+  // i = index of pip tapped (0-based). Filled pips are the first S[key].
+  S[key] = (i < S[key]) ? i : i+1;
+  save(); renderAll();
+}
+function castSpell(id,slotLv){
+  const sp=SPELLS.find(s=>s.id===id);
+  if(slotLv===1 && S.slots1<=0){ toast('No 1st-level slots left! (Font of Magic: 2 SP → new slot)'); return; }
+  if(slotLv===2 && S.slots2<=0){ toast('No 2nd-level slots left! (Font of Magic: 3 SP → new slot)'); return; }
+  if(slotLv===1) S.slots1--;
+  if(slotLv===2) S.slots2--;
+  let msg=`✨ Cast <b>${sp.n}</b>${slotLv?` (level ${slotLv} slot)`:''}.`;
+  if(sp.conc){ S.conc=sp.n; msg+=' Now concentrating.'; }
+  if(sp.toggle==='mageArmor'){ S.mageArmor=true; msg+=' AC is now 14.'; }
+  if(slotLv) msg+='<br>🎲 <b>Wild Magic:</b> DM may ask for a d20 — surge on a 1!';
+  save(); renderAll(); toast(msg,4200);
+}
+function castFree(id){
+  const sp=SPELLS.find(s=>s.id===id);
+  if(sp.free && S[sp.free]<=0){ toast('Free cast already used — costs a 1st-level slot now.'); return; }
+  if(sp.free) S[sp.free]--;
+  let msg = sp.rit ? `✨ Ritual cast: <b>${sp.n}</b> — 10 extra minutes, no slot. Now concentrating.` : `✨ Cast <b>${sp.n}</b> — free use (1/Long Rest).`;
+  if(sp.conc) S.conc=sp.n;
+  save(); renderAll(); toast(msg,4000);
+}
+function endConc(){ const c=S.conc; set({conc:null}); toast(`Concentration on <b>${c}</b> ended.`); }
+function rollAttack(id){
+  const sp=SPELLS.find(s=>s.id===id);
+  const d=roll(20), adv = S.innateActive && sp.src==='Sorcerer';
+  let html;
+  if(adv){ const d2=roll(20), hi=Math.max(d,d2);
+    html=`🎲 <b>${sp.n}</b> attack (advantage — Innate Sorcery):<br>d20: ${d} & ${d2} → keep ${hi} +5 = <b>${hi+5}</b>${hi===20?' — CRIT! 🎉':''}`;
+  } else {
+    html=`🎲 <b>${sp.n}</b> attack: d20: ${d} +5 = <b>${d+5}</b>${d===20?' — CRIT! 🎉':d===1?' — natural 1 😬':''}`;
+  }
+  toast(html,4500);
+}
+function rollDamage(id,expr){
+  const sp=SPELLS.find(s=>s.id===id);
+  const r=rollDice(expr);
+  let extra='';
+  if(id==='chromatic'){ const c={}; let dup=false; r.rolls.forEach(x=>{c[x]=(c[x]||0)+1; if(c[x]>1)dup=true;});
+    if(dup) extra='<br>🟣 <b>Doubles!</b> The orb LEAPS to a new target within 30 ft — roll a new attack!'; }
+  if(id==='sorcburst' && r.rolls.includes(8)) extra='<br>💥 <b>You rolled an 8!</b> Roll an extra d8 and add it (can chain ×3).';
+  toast(`🎲 <b>${sp.n}</b> damage (${expr}): [${r.rolls.join(', ')}] = <b>${r.total} ${sp.dtype||''}</b>${extra}`,5000);
+}
+function rollSkill(name,bonus){
+  const d=roll(20);
+  toast(`🎲 <b>${name}</b>: d20: ${d} ${fmt(bonus)} = <b>${d+bonus}</b>${d===20?' 🎉':d===1?' 😬':''}`,3800);
+}
+function spendSP(n,label){
+  if(S.sp<n){ toast(`Not enough Sorcery Points (need ${n}).`); return; }
+  S.sp-=n; save(); renderAll(); toast(`🟣 ${label} — spent ${n} SP.`);
+}
+function fontCreate(lv){
+  const cost=lv===1?2:3, key='slots'+lv;
+  if(S.sp<cost){ toast(`Need ${cost} SP for a level-${lv} slot.`); return; }
+  if(S[key]>=MAX[key]){ toast(`All level-${lv} slots are already full.`); return; }
+  S.sp-=cost; S[key]++; save(); renderAll();
+  toast(`🟣 Font of Magic: created a level-${lv} slot for ${cost} SP (Bonus Action).`);
+}
+function fontConvert(lv){
+  const key='slots'+lv;
+  if(S[key]<=0){ toast(`No level-${lv} slots to convert.`); return; }
+  if(S.sp>=MAX.sp){ toast('Sorcery Points already full.'); return; }
+  S[key]--; S.sp=Math.min(MAX.sp,S.sp+lv); save(); renderAll();
+  toast(`🟣 Converted a level-${lv} slot into ${lv} SP (Bonus Action).`);
+}
+function useAbility(a){
+  if(S[a.uses]<=0){ toast(`${a.n}: no uses left (recharges on ${a.per.replace('*','')}).`); return; }
+  S[a.uses]--;
+  if(a.id==='innate') S.innateActive=true;
+  if(a.id==='adrenaline'){ S.temp=Math.max(S.temp,2); }
+  if(a.id==='relentless'){ S.hp=Math.max(S.hp,1); }
+  if(a.id==='tides'){ toast('🌊 Tides of Chaos! Advantage on one d20 roll.<br>⚠️ Your next leveled spell auto-surges — which recharges this!',5200); save(); renderAll(); return; }
+  save(); renderAll();
+  toast(a.id==='innate' ? '✨ Innate Sorcery ACTIVE (1 min): Save DC 14, advantage on Sorcerer spell attacks. Attack rolls in the app now use it!'
+      : a.id==='adrenaline' ? '🏃 Adrenaline Rush: Dash as Bonus Action + 2 temp HP (added).'
+      : a.id==='relentless' ? '💪 Relentless Endurance: you drop to 1 HP instead of 0!'
+      : `Used ${a.n}.`,4500);
+}
+function rollSurge(){
+  const d=roll(100);
+  toast(`🌀 <b>Wild Magic Surge!</b> d100 = <b>${d}</b><br>Look it up on the surge table (PHB 2024, p. 144) with your DM.`,6000);
+}
+function surgeCheck(){
+  const d=roll(20);
+  if(d===1){ toast(`🎲 Surge check: <b>natural 1!</b> 🌀 SURGE! Rolling d100...`,2000); setTimeout(rollSurge,1600); }
+  else toast(`🎲 Surge check: d20 = <b>${d}</b> — no surge. The magic behaves. For now.`,3000);
+}
+
+/* =================== RENDER =================== */
+function pips(key,max,cls=''){
+  let h='<div class="piprow">';
+  for(let i=0;i<max;i++) h+=`<button class="pip ${cls} ${i<S[key]?'full':''}" onclick="togglePip('${key}',${i})"></button>`;
+  return h+'</div>';
+}
+function renderHub(){
+  const ac=S.mageArmor?14:11;
+  const hpPct=Math.round(S.hp/MAX.hp*100);
+  $('tab-hub').innerHTML=`
+  <div class="card">
+    <h2>Hit Points <span class="grow"></span>${infoBtn('tempHP')}</h2>
+    <div class="hpwrap">
+      <button class="hpbtn dmg" onclick="hpChange(-5)">−5</button>
+      <button class="hpbtn dmg" onclick="hpChange(-1)">−1</button>
+      <div class="hpnum">${S.hp}<small>/${MAX.hp}</small>${S.temp?`<div class="muted" style="font-size:.8rem">+${S.temp} temp</div>`:''}</div>
+      <button class="hpbtn heal" onclick="hpChange(1)">+1</button>
+      <button class="hpbtn heal" onclick="hpChange(5)">+5</button>
+    </div>
+    <div class="hpbar"><div style="width:${hpPct}%"></div></div>
+    <div class="subrow">
+      <button class="chip" onclick="spendHitDie()">🎲 Spend Hit Die (${S.hitDice}/4) — heal 1d6+3</button>
+      <button class="chip" onclick="showTerm('hitDice')" style="border:none;color:var(--blue)">what's this?</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Armor & Vibes <span class="grow"></span>${infoBtn('ac')}</h2>
+    <div class="subrow" style="margin-top:2px">
+      <button class="chip ${S.mageArmor?'on':''}" onclick="set({mageArmor:!S.mageArmor})">🛡️ AC ${ac} ${S.mageArmor?'· Mage Armor ON':'· tap when Mage Armor cast'}</button>
+      <button class="chip ${S.inspiration?'on':''}" onclick="set({inspiration:!S.inspiration}); if(S.inspiration)toast('⭐ Heroic Inspiration gained! Spend it to reroll any die.')">⭐ Heroic Inspiration ${S.inspiration?'— HAVE IT':'— none'}</button>
+      <button class="chip" onclick="showTerm('inspiration')" style="border:none;color:var(--blue)">?</button>
+    </div>
+    <div class="doodle">Initiative +1 · Speed 30 ft · Darkvision 120 ft</div>
+  </div>
+
+  <div class="card">
+    <h2>Spell Slots <span class="grow"></span>${infoBtn('spellSlots')}</h2>
+    <div style="display:flex;align-items:center"><span class="piplabel">1st level</span>${pips('slots1',4)}</div>
+    <div style="display:flex;align-items:center"><span class="piplabel">2nd level</span>${pips('slots2',3)}</div>
+    <div class="doodle">Tap to spend · tap again to undo. Cantrips never cost slots.</div>
+  </div>
+
+  <div class="card">
+    <h2>Sorcery Points <span class="grow"></span>${infoBtn('sorceryPoints')}</h2>
+    <div style="display:flex;align-items:center"><span class="piplabel">Points</span>${pips('sp',4,'sp')}</div>
+    <div class="subrow">
+      <button class="chip" onclick="fontCreate(1)">2 SP → 1st slot</button>
+      <button class="chip" onclick="fontCreate(2)">3 SP → 2nd slot</button>
+      <button class="chip" onclick="fontConvert(1)">1st slot → 1 SP</button>
+      <button class="chip" onclick="fontConvert(2)">2nd slot → 2 SP</button>
+    </div>
+    <div class="doodle">Font of Magic — each conversion is a Bonus Action.</div>
+  </div>
+
+  <div class="card">
+    <h2>Wild Magic <span class="grow"></span>${infoBtn('surge')}</h2>
+    <div class="subrow" style="margin-top:0">
+      <button class="chip warn" onclick="surgeCheck()">🎲 Surge check (d20)</button>
+      <button class="chip warn" onclick="rollSurge()">🌀 Roll surge (d100)</button>
+      <button class="chip ${S.tides>0?'on':''}" onclick="showTerm('surge')">🌊 Tides of Chaos: ${S.tides>0?'READY':'used'}</button>
+    </div>
+    <div class="doodle">When Edgar sneezes, a little magic escapes.</div>
+  </div>
+
+  <div class="card">
+    <h2>New to this? <span class="grow"></span></h2>
+    <div class="subrow" style="margin-top:0">
+      <button class="chip" onclick="showTerm('turn')">▶️ What can I do on my turn?</button>
+      <button class="chip" onclick="showTerm('advantage')">🎲 Advantage?</button>
+      <button class="chip" onclick="showTerm('concentration')">🧠 Concentration?</button>
+      <button class="chip" onclick="showTerm('components')">✋ V/S/M?</button>
+      <button class="chip" onclick="showTerm('saveDC')">🛡️ Save DC?</button>
+      <button class="chip" onclick="showTerm('spellAttack')">⚔️ Spell attack?</button>
+      <button class="chip" onclick="showTerm('ritual')">📜 Ritual?</button>
+    </div>
+  </div>`;
+}
+let spellFilter='all';
+function renderSpells(){
+  $('spellFilters').innerHTML=['all','0','1','2'].map(f=>
+    `<button class="fbtn ${spellFilter===f?'on':''}" onclick="spellFilter='${f}';renderSpells()">${f==='all'?'All':f==='0'?'Cantrips':f+(f==='1'?'st':'nd')+' level'}</button>`).join('')
+    + `<span style="flex:1"></span><span class="muted" style="align-self:center">DC 13 · Atk +5 ${infoBtn('saveDC')}</span>`;
+  const list=SPELLS.filter(s=>spellFilter==='all'||s.lv===+spellFilter);
+  $('spellList').innerHTML=list.map(sp=>{
+    const open=openSpells.has(sp.id);
+    const quick = sp.atk!=null?`+${sp.atk} · ${sp.dmg}`: sp.sv?sp.sv:'—';
+    let buttons='';
+    if(sp.lv===0) buttons=`<span class="tag" style="align-self:center">At will — free!</span>`;
+    if(sp.lv===1) buttons=`<button class="castbtn" onclick="castSpell('${sp.id}',1)">Cast · 1st (${S.slots1})</button>
+      ${sp.dmg2?`<button class="castbtn alt" onclick="castSpell('${sp.id}',2)">Upcast · 2nd (${S.slots2})</button>`:''}`;
+    if(sp.lv===2) buttons=`<button class="castbtn" onclick="castSpell('${sp.id}',2)">Cast · 2nd (${S.slots2})</button>`;
+    if(sp.rit) buttons+=`<button class="castbtn alt" onclick="castFree('${sp.id}')">Ritual — no slot</button>`;
+    if(sp.free) buttons=`<button class="castbtn ${S[sp.free]>0?'':'alt'}" onclick="castFree('${sp.id}')">Free cast (${S[sp.free]}/1)</button>
+      <button class="castbtn alt" onclick="castSpell('${sp.id}',1)">Cast · 1st (${S.slots1})</button>`;
+    let rolls='';
+    if(sp.atk!=null) rolls+=`<button class="castbtn roll" onclick="rollAttack('${sp.id}')">🎲 Attack</button>`;
+    if(sp.dmg) rolls+=`<button class="castbtn roll" onclick="rollDamage('${sp.id}','${sp.dmg}')">🎲 Dmg ${sp.dmg}</button>`;
+    if(sp.dmg2) rolls+=`<button class="castbtn roll" onclick="rollDamage('${sp.id}','${sp.dmg2}')">🎲 Upcast ${sp.dmg2}</button>`;
+    return `<div class="card spell ${open?'open':''}">
+      <button class="spellhead" onclick="toggleSpell('${sp.id}')">
+        <span class="lvl">${sp.lv===0?'C':sp.lv===1?'1st':'2nd'}</span>
+        <span class="nm"><b>${sp.n}</b><span>${sp.time} · ${sp.rng} · ${sp.src}</span></span>
+        <span class="quick">${quick}</span>
+      </button>
+      <div class="spellbody">
+        <div class="tagrow">
+          ${sp.conc?`<span class="tag c">Concentration</span>`:''}
+          ${sp.rit?`<span class="tag r">Ritual</span>`:''}
+          <span class="tag">${sp.comp}</span><span class="tag">Duration: ${sp.dur}</span>
+          ${sp.dtype?`<span class="tag">${sp.dtype} damage</span>`:''}
+        </div>
+        <div class="desc">${sp.d.replace(/\n/g,'<br>')}</div>
+        <div class="tip">💡 ${sp.tip}</div>
+        <div class="castrow">${buttons}</div>
+        ${rolls?`<div class="castrow">${rolls}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+const openSpells=new Set();
+function toggleSpell(id){ openSpells.has(id)?openSpells.delete(id):openSpells.add(id); renderSpells(); }
+
+function renderAbil(){
+  $('tab-abil').innerHTML =
+  (S.innateActive?`<div class="card" style="border-color:var(--gold)"><h2>✨ Innate Sorcery ACTIVE</h2>
+    <div class="muted">Save DC 14 · advantage on Sorcerer spell attacks · 1 minute</div>
+    <div class="castrow" style="margin-top:8px"><button class="castbtn alt" onclick="set({innateActive:false});toast('Innate Sorcery ended.')">End effect</button></div></div>`:'')
+  + ABILITIES.map(a=>`
+  <div class="card abil">
+    <h2>${a.n} <span class="grow"></span><span class="muted" style="font-size:.72rem">${a.action}</span></h2>
+    <div class="desc">${a.d.replace(/\n/g,'<br>')}</div>
+    <div class="tip">💡 ${a.tip}</div>
+    <div class="uses">
+      <span class="piplabel">${S[a.uses]}/${MAX[a.uses]} · ${a.per}</span>${pips(a.uses,MAX[a.uses],'use')}
+      <button class="spendbtn" onclick='useAbility(ABILITIES.find(x=>x.id==="${a.id}"))' ${S[a.uses]<=0?'disabled':''}>Use</button>
+    </div>
+  </div>`).join('')
+  + `<div class="card"><h2>Metamagic <span class="grow"></span>${infoBtn('sorceryPoints')}</h2>` +
+  META.map(m=>`
+    <div style="margin-bottom:12px">
+      <b class="hand" style="font-size:1.1rem">${m.n} — ${m.cost} SP</b>
+      <div class="desc" style="margin-top:4px">${m.d.replace(/\n/g,'<br>')}</div>
+      <button class="spendbtn" onclick="spendSP(${m.cost},'${m.n}')" ${S.sp<m.cost?'disabled':''}>Spend ${m.cost} SP (${S.sp} left)</button>
+    </div>`).join('') + `</div>
+  <div class="card"><h2>Darkvision 120 ft <span class="grow"></span>${infoBtn('darkvision')}</h2>
+    <div class="muted">See in total darkness up to 120 ft (greyscale). Always on.</div></div>`;
+}
+
+function renderStats(){
+  $('tab-stats').innerHTML=`
+  <div class="card">
+    <h2>Ability Scores <span class="grow"></span>${infoBtn('proficiency')}</h2>
+    <div class="abilgrid">${ABS.map(a=>`
+      <button class="abox" onclick="rollSkill('${a.n} check',${a.m})">
+        <div class="an">${a.n}</div><div class="am">${fmt(a.m)}</div><div class="as">score ${a.s}</div>
+        <div class="sv ${a.p?'p':''}">save ${fmt(a.sv)}${a.p?' ●':''}</div>
+      </button>`).join('')}
+    </div>
+    <div class="doodle">Tap a box to roll that ability check. ● = save proficiency.</div>
+  </div>
+  <div class="card">
+    <h2>Skills <span class="grow"></span>${infoBtn('passive')}</h2>
+    ${SKILLS.map(s=>`<button class="skill" onclick="rollSkill('${s[0]}',${s[2]})">
+      <span class="dot ${s[3]?'p':''}"></span><span class="ab">${s[1]}</span>
+      <span class="name">${s[0]}</span><span class="bonus">${fmt(s[2])}</span></button>`).join('')}
+    <div class="doodle">Tap any skill to roll d20 + bonus. Gold dot = proficient. Passive Perception 9 · Investigation 11 · Insight 9.</div>
+  </div>
+  <div class="card">
+    <h2>Weapons</h2>
+    <table class="wpn">
+      <tr><th>Weapon</th><th>Hit</th><th>Damage</th><th>Range</th></tr>
+      <tr><td>Dagger</td><td>+3</td><td>1d4+1</td><td>20/60 ft thrown</td></tr>
+      <tr><td>Spear</td><td>+3</td><td>1d6+1 (1d8+1 2-handed)</td><td>20/60 ft thrown</td></tr>
+      <tr><td>Unarmed</td><td>+3</td><td>2</td><td>5 ft</td></tr>
+    </table>
+    <div class="doodle">Or cast True Strike to attack with +5 instead — magic beats muscles.</div>
+  </div>
+  <div class="card">
+    <h2>Proficiencies & Languages</h2>
+    <div class="muted" style="line-height:1.6">
+      <b style="color:var(--ink)">Saves:</b> Constitution, Charisma &nbsp;·&nbsp; <b style="color:var(--ink)">Skills:</b> Arcana, Persuasion<br>
+      <b style="color:var(--ink)">Weapons:</b> Simple weapons<br>
+      <b style="color:var(--ink)">Tools:</b> Calligrapher's Supplies, Cook's Utensils 🍳<br>
+      <b style="color:var(--ink)">Languages:</b> Common, Common Sign Language, Orc<br>
+      <b style="color:var(--ink)">Proficiency bonus:</b> +2
+    </div>
+  </div>`;
+}
+function renderConc(){
+  const b=$('concBanner');
+  if(S.conc){ b.classList.add('show'); b.innerHTML=`🧠 Concentrating on <b>${S.conc}</b> — tap to end &nbsp;${infoBtn('concentration')}`; }
+  else b.classList.remove('show');
+}
+function renderAll(){ renderHub(); renderSpells(); renderAbil(); renderStats(); renderConc(); }
+
+/* =================== NAV =================== */
+document.querySelectorAll('nav button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('section.tab').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('on');
+    $('tab-'+btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0});
+  });
+});
+
+renderAll();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>

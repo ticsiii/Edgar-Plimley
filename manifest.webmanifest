@@ -1,0 +1,12 @@
+{
+  "name": "Edgar's Picture Book",
+  "short_name": "Edgar",
+  "description": "Session companion for Edgar Plimley — Orc Sorcerer 4 (who is definitely a Wizard)",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#15130f",
+  "theme_color": "#15130f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
