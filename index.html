@@ -264,7 +264,8 @@ nav button.on{color:var(--gold)}
 /* =================== STATE =================== */
 const MAX = {hp:30, slots1:4, slots2:3, sp:4, innate:2, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
 const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, innate:2, innateActive:false, tides:1,
-  familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false};
+  familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false,
+  pixieDust:3, herb:3};
 let S = load();
 function load(){ try{ const s = JSON.parse(localStorage.getItem('edgarState')); return s ? Object.assign({},DEFAULT,s) : {...DEFAULT}; }catch(e){ return {...DEFAULT}; } }
 function save(){ localStorage.setItem('edgarState', JSON.stringify(S)); }
@@ -515,6 +516,15 @@ function useAbility(a){
       : a.id==='relentless' ? '💪 Relentless Endurance: you drop to 1 HP instead of 0!'
       : `Used ${a.n}.`,4500);
 }
+function useItem(key,label){
+  if(S[key]<=0){ toast(`No ${label} left.`); return; }
+  S[key]--; save(); renderAll();
+  toast(`Used 1 pack of <b>${label}</b> — ${S[key]} left.`);
+}
+function addItem(key,label){
+  S[key]++; save(); renderAll();
+  toast(`+1 <b>${label}</b> — now ${S[key]}.`);
+}
 function rollSurge(){
   const d=roll(100);
   toast(`🌀 <b>Wild Magic Surge!</b> d100 = <b>${d}</b><br>Look it up on the surge table (PHB 2024, p. 144) with your DM.`,6000);
@@ -708,6 +718,25 @@ function renderStats(){
     <b class="hand" style="font-size:1.1rem">🪄 Mysterious Wand</b>
     <div class="desc" style="margin-top:4px">Found in a previous adventure. Effect unknown. Attunement unknown. Taste: woody, faint ozone, notes of destiny.</div>
     <div class="tip">💡 Science protocol: 1) ritual-cast Detect Magic on it (free!), 2) ask the DM how identification works at your table (Identify spell, a Short Rest of focused study, or trial &amp; error), 3) only THEN wave it at things. Edgar will skip straight to 3.</div>
+  </div>
+  <div class="card">
+    <h2>Consumables</h2>
+    <div style="margin-bottom:12px">
+      <b class="hand" style="font-size:1.1rem">✨ Pixie Dust</b>
+      <div class="desc" style="margin-top:4px">3 packs from a friend. Effect unknown — ask the DM before sprinkling. Edgar's hypothesis: "concentrated whimsy, possibly seasoning."</div>
+      <div class="castrow">
+        <button class="castbtn alt" onclick="useItem('pixieDust','Pixie Dust')" ${S.pixieDust<=0?'disabled':''}>Use 1 — ${S.pixieDust} left</button>
+        <button class="castbtn roll" onclick="addItem('pixieDust','Pixie Dust')">+1</button>
+      </div>
+    </div>
+    <div>
+      <b class="hand" style="font-size:1.1rem">🌿 "Herb"</b>
+      <div class="desc" style="margin-top:4px">3 packs of the local relaxing leaf, also from a friend. Effects per DM. Definitely do not smoke before a Wisdom save (you can't afford it).</div>
+      <div class="castrow">
+        <button class="castbtn alt" onclick="useItem('herb','Herb')" ${S.herb<=0?'disabled':''}>Use 1 — ${S.herb} left</button>
+        <button class="castbtn roll" onclick="addItem('herb','Herb')">+1</button>
+      </div>
+    </div>
   </div>
   <div class="card">
     <h2>Proficiencies & Languages</h2>
