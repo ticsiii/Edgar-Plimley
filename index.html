@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#15130f">
-<title>Edgar's Picture Book</title>
+<title>Edgar's Wizarding Book</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -37,7 +37,7 @@ header .row{display:flex;align-items:center;justify-content:space-between;gap:8p
 header h1{font-size:1.5rem;color:var(--gold);line-height:1}
 header .sub{color:var(--dim);font-size:.74rem;margin-top:2px}
 header .sub em{color:var(--purple)}
-.restbtns{display:flex;gap:8px}
+.restbtns{display:flex;flex-direction:column;gap:6px}
 .restbtn{
   font-family:"Patrick Hand",cursive;font-size:.95rem;padding:7px 11px;border-radius:10px;
   border:1.5px solid var(--line);background:var(--card);color:var(--ink);white-space:nowrap;
@@ -221,8 +221,9 @@ nav button.on{color:var(--gold)}
 <header>
   <div class="row">
     <div>
-      <h1>Edgar's Picture Book ✦</h1>
-      <div class="sub">Edgar Plimley · Orc Sorcerer 4 · Wild Magic · <em>(definitely a Wizard)</em></div>
+      <h1>Edgar's Wizarding Book ✦</h1>
+      <div class="sub">Edgar Plimley · Orc Sorcerer 4</div>
+      <div class="sub">Wild Magic · <em>(definitely a Wizard)</em></div>
     </div>
     <div class="restbtns">
       <button class="restbtn" onclick="confirmRest('short')">☕ Short</button>
@@ -517,6 +518,23 @@ function useAbility(a){
       : a.id==='relentless' ? '💪 Relentless Endurance: you drop to 1 HP instead of 0!'
       : `Used ${a.n}.`,4500);
 }
+function exportState(){
+  const code = btoa(JSON.stringify(S));
+  const done = ()=>toast('📋 Backup code copied! Paste it somewhere safe (notes app, chat with yourself).',4500);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(done).catch(()=>prompt('Copy this backup code:',code));
+  } else prompt('Copy this backup code:',code);
+}
+function importState(){
+  const code = prompt('Paste your backup code:');
+  if(!code) return;
+  try{
+    const s = JSON.parse(atob(code.trim()));
+    if(typeof s.hp !== 'number') throw new Error('bad');
+    S = Object.assign({},DEFAULT,s); save(); renderAll();
+    toast('📥 Backup restored!');
+  }catch(e){ toast('❌ That code doesn\'t look right — make sure you pasted the whole thing.'); }
+}
 function useItem(key,label){
   if(S[key]<=0){ toast(`No ${label} left.`); return; }
   S[key]--; save(); renderAll();
@@ -599,6 +617,15 @@ function renderHub(){
       <button class="chip ${S.tides>0?'on':''}" onclick="showTerm('surge')">🌊 Tides of Chaos: ${S.tides>0?'READY':'used'}</button>
     </div>
     <div class="doodle">When Edgar sneezes, a little magic escapes.</div>
+  </div>
+
+  <div class="card">
+    <h2>Save & Backup</h2>
+    <div class="muted" style="margin-bottom:8px">Every tap is saved on this phone automatically — app updates never erase it. Use a backup code to move to a new phone or guard against cleared browser data.</div>
+    <div class="subrow" style="margin-top:0">
+      <button class="chip" onclick="exportState()">📋 Copy backup code</button>
+      <button class="chip" onclick="importState()">📥 Restore from code</button>
+    </div>
   </div>
 
   <div class="card">
