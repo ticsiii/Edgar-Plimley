@@ -233,6 +233,9 @@ nav button.on{color:var(--gold)}
 </header>
 
 <main>
+  <button id="installBanner" style="display:none;width:100%;margin-bottom:12px;border:1.5px solid var(--green);border-radius:14px;background:linear-gradient(90deg,#22301e,#221e18);padding:12px 14px;text-align:left;font-size:.9rem" onclick="doInstall()">
+    📲 <b style="color:var(--green)">Install Edgar's Wizarding Book</b> — tap to add it to your home screen as a real app
+  </button>
   <button id="concBanner" onclick="endConc()"></button>
 
   <!-- ============ HUB ============ -->
@@ -794,6 +797,22 @@ document.querySelectorAll('nav button').forEach(btn=>{
     window.scrollTo({top:0});
   });
 });
+
+/* =================== PWA INSTALL =================== */
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); deferredInstall=e;
+  $('installBanner').style.display='block';
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstall=null; $('installBanner').style.display='none';
+  toast('📲 Installed! Find Edgar on your home screen.');
+});
+function doInstall(){
+  if(!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(()=>{ deferredInstall=null; $('installBanner').style.display='none'; });
+}
 
 renderAll();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
