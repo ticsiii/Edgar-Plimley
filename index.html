@@ -228,10 +228,21 @@ nav button.on{color:var(--gold)}
 #diceOverlay.three #dieWrap{display:none}
 #resultBig{
   position:absolute;inset:0;display:none;align-items:center;justify-content:center;
-  font-family:"Patrick Hand",cursive;font-size:4.6rem;color:#fff;
-  text-shadow:0 2px 8px rgba(0,0,0,.85),0 0 20px rgba(170,205,255,.45);
+  font-family:"Patrick Hand",cursive;font-size:4.2rem;color:#fff;
+}
+#resultBig span:not(:empty){
+  background:rgba(12,9,6,.78);border:1.5px solid rgba(217,164,65,.5);border-radius:22px;
+  padding:2px 30px;min-width:110px;text-align:center;backdrop-filter:blur(3px);
+  box-shadow:0 6px 24px rgba(0,0,0,.5);
 }
 #diceOverlay.three #resultBig{display:flex}
+#diceOverlay.three #diceLabel:not(:empty),#diceOverlay.three #diceDetail:not(:empty){
+  background:rgba(12,9,6,.78);border-radius:14px;padding:7px 16px;backdrop-filter:blur(3px);
+  box-shadow:0 4px 18px rgba(0,0,0,.45);max-width:88vw;
+}
+#diceOverlay.three #diceBadge:not(:empty){
+  background:rgba(12,9,6,.78);border-radius:12px;padding:2px 14px;height:auto;
+}
 #diceOverlay.three.settled #resultBig,#diceOverlay.three.total #resultBig,#diceOverlay.three.crit #resultBig{animation:pop .3s ease}
 #diceOverlay.three.crit #resultBig{color:var(--gold);text-shadow:0 0 24px var(--gold),0 2px 6px rgba(0,0,0,.7)}
 #diceOverlay.three.fumble #resultBig{color:var(--red);text-shadow:0 0 18px var(--red),0 2px 6px rgba(0,0,0,.7);animation:shake .45s ease}
@@ -361,7 +372,7 @@ nav button.on{color:var(--gold)}
 <div id="dice-canvas"></div>
 <div id="diceOverlay" onclick="hideRoll()">
   <div id="diceStage">
-    <div id="resultBig"></div>
+    <div id="resultBig"><span id="resultNum"></span></div>
     <div id="dieWrap">
       <div class="crystal"><div class="flare"></div></div>
       <svg class="facets" viewBox="0 0 100 100" aria-hidden="true">
@@ -570,7 +581,7 @@ async function getDice(notation, sides, label){
   const seq=rollSeq;
   const ov=$('diceOverlay');
   $('diceLabel').innerHTML=label; $('diceDetail').innerHTML='';
-  $('diceBadge').textContent=''; $('modChip').textContent=''; $('resultBig').textContent='';
+  $('diceBadge').textContent=''; $('modChip').textContent=''; $('resultNum').textContent='';
   ov.className='show three';
   const box=await ensure3d();
   if(seq!==rollSeq) return null;
@@ -598,13 +609,13 @@ function present3d(r){
   $('modChip').textContent=r.mod?(r.mod>0?`+${r.mod}`:`${r.mod}`):'';
   const raw=(r.die==null)?r.final:r.die;
   const finish=()=>{
-    $('resultBig').textContent=r.final;
+    $('resultNum').textContent=r.final;
     ov.className='show three '+(r.crit?'crit':r.fumble?'fumble':'total');
     $('diceDetail').innerHTML=r.detail;
     buzz(r.crit?[40,60,90]:r.fumble?[80]:35);
     later(hideRoll,4500);
   };
-  $('resultBig').textContent=raw;
+  $('resultNum').textContent=raw;
   ov.className='show three settled';
   buzz(22);
   if(r.mod && raw!==r.final){
