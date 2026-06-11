@@ -555,7 +555,7 @@ async function ensure3d(){
     const mod = await import('./dice/dice-box.es.min.js');
     const box = new mod.default('#dice-canvas', {
       assetPath:'/dice/assets/',
-      theme:'default', themeColor:'#d9dfee',
+      theme:'dichroic', themeColor:'#eef1f8',
       scale:7, gravity:1.4, mass:1, friction:.8, restitution:.55,
       angularDamping:.4, linearDamping:.5, spinForce:6, throwForce:6,
       settleTimeout:5000, shadowTransparency:.85, lightIntensity:1
