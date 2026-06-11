@@ -234,20 +234,26 @@ nav button.on{color:var(--gold)}
 }
 .crystal{
   position:absolute;inset:0;clip-path:var(--hex);
-  background:linear-gradient(152deg,rgba(255,255,255,.32) 0%,rgba(190,210,255,.10) 32%,rgba(130,150,215,.16) 54%,rgba(225,238,255,.25) 76%,rgba(255,255,255,.12) 100%),rgba(26,25,40,.62);
+  background:
+    radial-gradient(42% 38% at 30% 32%, rgba(255,90,190,.50), transparent 72%),
+    radial-gradient(46% 42% at 72% 28%, rgba(90,170,255,.50), transparent 72%),
+    radial-gradient(42% 42% at 68% 72%, rgba(150,90,255,.42), transparent 72%),
+    radial-gradient(38% 36% at 30% 74%, rgba(70,225,215,.45), transparent 70%),
+    radial-gradient(30% 28% at 52% 55%, rgba(255,170,90,.35), transparent 75%),
+    linear-gradient(152deg, rgba(255,255,255,.78) 0%, rgba(242,245,255,.42) 35%, rgba(228,232,248,.5) 62%, rgba(255,255,255,.65) 100%);
 }
 .crystal .flare{
   position:absolute;inset:-30%;
-  background:conic-gradient(from 20deg at 50% 55%,rgba(255,70,130,.55),rgba(255,195,70,.5),rgba(90,255,180,.42),rgba(70,160,255,.55),rgba(175,90,255,.5),rgba(255,70,130,.55));
-  filter:blur(16px) saturate(1.6);opacity:.55;mix-blend-mode:screen;
-  animation:flarespin 5s linear infinite;
+  background:conic-gradient(from 20deg at 50% 55%,rgba(255,70,160,.5),rgba(255,180,80,.4),rgba(90,255,200,.35),rgba(80,150,255,.5),rgba(190,90,255,.45),rgba(255,70,160,.5));
+  filter:blur(18px) saturate(1.5);opacity:.4;mix-blend-mode:screen;
+  animation:flarespin 6s linear infinite;
 }
 @keyframes flarespin{to{transform:rotate(360deg)}}
 #dieWrap svg.facets{position:absolute;inset:0;width:100%;height:100%}
 #diceNum{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:"Patrick Hand",cursive;font-size:3.5rem;color:#fff;padding-top:4px;
-  text-shadow:0 0 16px rgba(170,205,255,.9),0 2px 3px rgba(0,0,0,.65);
+  font-family:"Patrick Hand",cursive;font-size:3.5rem;color:#b5683a;padding-top:4px;
+  text-shadow:0 1px 1px rgba(255,235,210,.7),0 -1px 2px rgba(80,35,10,.45),0 0 12px rgba(255,180,120,.3);
 }
 #modChip{
   position:absolute;left:calc(50% + 92px);top:50%;transform:translateY(-50%);
@@ -344,9 +350,9 @@ nav button.on{color:var(--gold)}
     <div id="dieWrap">
       <div class="crystal"><div class="flare"></div></div>
       <svg class="facets" viewBox="0 0 100 100" aria-hidden="true">
-        <polygon points="50,2 92,26 92,74 50,98 8,74 8,26" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linejoin="round"/>
-        <polygon points="50,15 81,69 19,69" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linejoin="round"/>
-        <g stroke="rgba(255,255,255,.28)" stroke-width="1.1">
+        <polygon points="50,2 92,26 92,74 50,98 8,74 8,26" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="2.2" stroke-linejoin="round"/>
+        <polygon points="50,15 81,69 19,69" fill="none" stroke="rgba(160,170,200,.55)" stroke-width="1.3" stroke-linejoin="round"/>
+        <g stroke="rgba(160,170,200,.35)" stroke-width="1">
           <line x1="50" y1="2" x2="50" y2="15"/><line x1="8" y1="26" x2="19" y2="69"/><line x1="92" y1="26" x2="81" y2="69"/>
           <line x1="8" y1="74" x2="19" y2="69"/><line x1="92" y1="74" x2="81" y2="69"/><line x1="50" y1="98" x2="50" y2="69"/>
         </g>
