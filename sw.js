@@ -1,11 +1,14 @@
-const CACHE = 'edgar-v4';
+const CACHE = 'edgar-v5';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png',
   './edgar-adventure.jpg', './edgar-magic.jpg',
   './dice/dice-box.es.min.js', './dice/Dice.min.js', './dice/world.offscreen.min.js', './dice/world.onscreen.min.js', './dice/world.none.min.js',
   './dice/assets/ammo/ammo.wasm.wasm',
   './dice/assets/themes/default/theme.config.json', './dice/assets/themes/default/default.json',
   './dice/assets/themes/default/diffuse-light.png', './dice/assets/themes/default/diffuse-dark.png',
-  './dice/assets/themes/default/normal.png', './dice/assets/themes/default/specular.jpg'];
+  './dice/assets/themes/default/normal.png', './dice/assets/themes/default/specular.jpg',
+  './dice/assets/themes/dichroic/theme.config.json', './dice/assets/themes/dichroic/gemstone.json',
+  './dice/assets/themes/dichroic/dichroic-light.png', './dice/assets/themes/dichroic/dichroic-dark.png',
+  './dice/assets/themes/dichroic/normal.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
