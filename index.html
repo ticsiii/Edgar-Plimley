@@ -216,6 +216,46 @@ nav button.on{color:var(--gold)}
 .invrow .iname b{font-family:"Patrick Hand",cursive;font-size:1.08rem;font-weight:400}
 .invrow .qty{font-family:"Patrick Hand",cursive;font-size:1.15rem;min-width:34px;text-align:center}
 .invrow .del{border-color:var(--red-dk);color:#ff9d9d}
+/* ---------- dice overlay ---------- */
+#diceOverlay{
+  position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
+  flex-direction:column;background:rgba(10,8,5,.78);backdrop-filter:blur(2px);
+}
+#diceOverlay.show{display:flex}
+#dieWrap{position:relative;width:150px;height:150px}
+#diceOverlay.rolling #dieWrap{animation:tumble .95s cubic-bezier(.2,.7,.3,1)}
+@keyframes tumble{
+  0%{transform:rotate(0deg) scale(.5) translateY(-40px)}
+  35%{transform:rotate(300deg) scale(1.18)}
+  65%{transform:rotate(560deg) scale(.92)}
+  100%{transform:rotate(720deg) scale(1)}
+}
+#dieWrap svg{width:100%;height:100%;filter:drop-shadow(0 6px 18px rgba(217,164,65,.35))}
+#diceNum{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:"Patrick Hand",cursive;font-size:3.4rem;color:var(--ink);padding-top:6px;
+}
+#diceOverlay.settled #dieWrap{animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(1.3)}100%{transform:scale(1)}}
+#diceOverlay.crit #dieWrap{animation:pop .3s ease}
+#diceOverlay.crit #diceNum{color:var(--gold);text-shadow:0 0 18px var(--gold)}
+#diceOverlay.crit #dieWrap svg{filter:drop-shadow(0 0 26px var(--gold))}
+#diceOverlay.fumble #dieWrap{animation:shake .45s ease}
+#diceOverlay.fumble #diceNum{color:var(--red);text-shadow:0 0 14px var(--red)}
+#diceOverlay.fumble #dieWrap svg{filter:drop-shadow(0 0 20px rgba(214,69,69,.6))}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px) rotate(-4deg)}40%{transform:translateX(8px) rotate(3deg)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+#diceBadge{
+  font-family:"Patrick Hand",cursive;font-size:1.5rem;height:2rem;margin-top:4px;
+  color:var(--gold);opacity:0;transition:opacity .15s;
+}
+#diceOverlay.crit #diceBadge,#diceOverlay.fumble #diceBadge{opacity:1}
+#diceOverlay.fumble #diceBadge{color:var(--red)}
+#diceLabel{font-family:"Patrick Hand",cursive;font-size:1.25rem;color:var(--gold);margin-top:2px;text-align:center;padding:0 24px}
+#diceDetail{
+  margin-top:8px;font-size:.95rem;line-height:1.5;color:var(--ink);text-align:center;
+  padding:0 28px;max-width:420px;min-height:3em;
+}
+#diceHint{position:absolute;bottom:calc(24px + env(safe-area-inset-bottom));color:var(--dim);font-size:.74rem}
 #toast{
   position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
   background:#0e0c09;border:1.5px solid var(--gold);color:var(--ink);border-radius:13px;
@@ -271,6 +311,23 @@ nav button.on{color:var(--gold)}
   <button data-tab="stats"><span class="ic">🎲</span>Stats</button>
 </nav>
 
+<div id="diceOverlay" onclick="hideRoll()">
+  <div id="dieWrap">
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <polygon points="50,3 91,26 91,74 50,97 9,74 9,26" fill="#2b2620" stroke="var(--gold)" stroke-width="3" stroke-linejoin="round"/>
+      <polygon points="50,16 81,70 19,70" fill="none" stroke="var(--gold)" stroke-width="1.6" opacity=".5" stroke-linejoin="round"/>
+      <g stroke="var(--gold)" stroke-width="1.2" opacity=".3">
+        <line x1="50" y1="3" x2="50" y2="16"/><line x1="9" y1="26" x2="19" y2="70"/><line x1="91" y1="26" x2="81" y2="70"/>
+        <line x1="9" y1="74" x2="19" y2="70"/><line x1="91" y1="74" x2="81" y2="70"/><line x1="50" y1="97" x2="50" y2="70"/>
+      </g>
+    </svg>
+    <div id="diceNum"></div>
+  </div>
+  <div id="diceBadge"></div>
+  <div id="diceLabel"></div>
+  <div id="diceDetail"></div>
+  <div id="diceHint">tap anywhere to close</div>
+</div>
 <div id="overlay" onclick="closeSheet()"></div>
 <div id="sheet"></div>
 <div id="toast"></div>
@@ -421,6 +478,29 @@ function rollDice(expr){ // "3d8" -> {total, rolls}
 function infoBtn(term){ return `<button class="info" onclick="event.stopPropagation();showTerm('${term}')">i</button>`; }
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
+/* =================== DICE OVERLAY =================== */
+let diceCycle=null, diceHide=null;
+const reducedMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function showRoll({sides=20, final, label='', detail='', crit=false, fumble=false}){
+  clearInterval(diceCycle); clearTimeout(diceHide);
+  const ov=$('diceOverlay');
+  ov.className='show rolling';
+  $('diceLabel').innerHTML=label;
+  $('diceDetail').innerHTML='';
+  $('diceBadge').textContent=crit?'✨ CRITICAL! ✨':fumble?'natural 1...':'';
+  const dur = reducedMotion ? 0 : 950;
+  if(dur) diceCycle=setInterval(()=>{ $('diceNum').textContent=1+Math.floor(Math.random()*sides); },70);
+  setTimeout(()=>{
+    clearInterval(diceCycle);
+    $('diceNum').textContent=final;
+    $('diceDetail').innerHTML=detail;
+    ov.className='show '+(crit?'crit':fumble?'fumble':'settled');
+    try{ navigator.vibrate && navigator.vibrate(crit?[40,60,80]:fumble?[80]:35); }catch(e){}
+    diceHide=setTimeout(hideRoll, 3600);
+  }, dur);
+}
+function hideRoll(){ clearInterval(diceCycle); clearTimeout(diceHide); $('diceOverlay').className=''; }
+
 /* =================== SHEET / MODAL =================== */
 function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
 function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
@@ -472,7 +552,9 @@ function hpChange(n){
 function spendHitDie(){
   if(S.hitDice<=0){ toast('No Hit Dice left — Long Rest gives back 2.'); return; }
   const r=roll(6); S.hitDice--; S.hp=Math.min(MAX.hp,S.hp+r+3);
-  save(); renderAll(); toast(`🎲 Hit Die: rolled ${r} +3 CON = <b>healed ${r+3} HP</b>`);
+  save(); renderAll();
+  showRoll({sides:6, final:r+3, label:'Hit Die — healing',
+    detail:`d6: ${r} +3 CON = <b>healed ${r+3} HP</b> (${S.hitDice}/4 dice left)`});
 }
 function togglePip(key,i){
   // i = index of pip tapped (0-based). Filled pips are the first S[key].
@@ -502,14 +584,13 @@ function castFree(id){
 function endConc(){ const c=S.conc; set({conc:null}); toast(`Concentration on <b>${c}</b> ended.`); }
 function rollAttack(id){
   const sp=SPELLS.find(s=>s.id===id);
-  const d=roll(20), adv = S.innateActive && sp.src==='Sorcerer';
-  let html;
-  if(adv){ const d2=roll(20), hi=Math.max(d,d2);
-    html=`🎲 <b>${sp.n}</b> attack (advantage — Innate Sorcery):<br>d20: ${d} & ${d2} → keep ${hi} +5 = <b>${hi+5}</b>${hi===20?' — CRIT! 🎉':''}`;
-  } else {
-    html=`🎲 <b>${sp.n}</b> attack: d20: ${d} +5 = <b>${d+5}</b>${d===20?' — CRIT! 🎉':d===1?' — natural 1 😬':''}`;
-  }
-  toast(html,4500);
+  const adv = S.innateActive && sp.src==='Sorcerer';
+  const d=roll(20), d2=adv?roll(20):null;
+  const kept=adv?Math.max(d,d2):d;
+  showRoll({sides:20, final:kept+5, crit:kept===20, fumble:kept===1,
+    label:`${sp.n} — attack roll`,
+    detail:(adv?`Advantage (Innate Sorcery): ${d} & ${d2} → keep ${kept}`:`d20: ${kept}`)+` +5 = <b>${kept+5}</b> vs the target's AC`
+      +(kept===20?'<br>Automatic hit — roll damage TWICE (all the dice)!':kept===1?'<br>Automatic miss. The magic sneezes.':'')});
 }
 function rollDamage(id,expr){
   const sp=SPELLS.find(s=>s.id===id);
@@ -518,11 +599,15 @@ function rollDamage(id,expr){
   if(id==='chromatic'){ const c={}; let dup=false; r.rolls.forEach(x=>{c[x]=(c[x]||0)+1; if(c[x]>1)dup=true;});
     if(dup) extra='<br>🟣 <b>Doubles!</b> The orb LEAPS to a new target within 30 ft — roll a new attack!'; }
   if(id==='sorcburst' && r.rolls.includes(8)) extra='<br>💥 <b>You rolled an 8!</b> Roll an extra d8 and add it (can chain ×3).';
-  toast(`🎲 <b>${sp.n}</b> damage (${expr}): [${r.rolls.join(', ')}] = <b>${r.total} ${sp.dtype||''}</b>${extra}`,5000);
+  showRoll({sides:+expr.split('d')[1], final:r.total,
+    label:`${sp.n} — damage (${expr})`,
+    detail:`[${r.rolls.join(', ')}] = <b>${r.total} ${sp.dtype||''} damage</b>${extra}`});
 }
 function rollSkill(name,bonus){
   const d=roll(20);
-  toast(`🎲 <b>${name}</b>: d20: ${d} ${fmt(bonus)} = <b>${d+bonus}</b>${d===20?' 🎉':d===1?' 😬':''}`,3800);
+  showRoll({sides:20, final:d+bonus, crit:d===20, fumble:d===1,
+    label:name,
+    detail:`d20: ${d} ${fmt(bonus)} = <b>${d+bonus}</b>`});
 }
 function spendSP(n,label){
   if(S.sp<n){ toast(`Not enough Sorcery Points (need ${n}).`); return; }
@@ -642,12 +727,14 @@ function addItem(key,label){
 }
 function rollSurge(){
   const d=roll(100);
-  toast(`🌀 <b>Wild Magic Surge!</b> d100 = <b>${d}</b><br>Look it up on the surge table (PHB 2024, p. 144) with your DM.`,6000);
+  showRoll({sides:100, final:d, label:'🌀 Wild Magic Surge — d100',
+    detail:`Look up <b>${d}</b> on the surge table (PHB 2024, p. 144) with your DM!`});
 }
 function surgeCheck(){
   const d=roll(20);
-  if(d===1){ toast(`🎲 Surge check: <b>natural 1!</b> 🌀 SURGE! Rolling d100...`,2000); setTimeout(rollSurge,1600); }
-  else toast(`🎲 Surge check: d20 = <b>${d}</b> — no surge. The magic behaves. For now.`,3000);
+  showRoll({sides:20, final:d, fumble:d===1, label:'Wild Magic — surge check',
+    detail:d===1?'🌀 <b>SURGE!</b> Rolling the d100...':'No surge. The magic behaves. For now.'});
+  if(d===1) setTimeout(rollSurge, 2400);
 }
 
 /* =================== RENDER =================== */
