@@ -1,4 +1,4 @@
-const CACHE = 'edgar-v7';
+const CACHE = 'edgar-v8';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png',
   './edgar-adventure.jpg', './edgar-magic.jpg',
   './dice/dice-box.es.min.js', './dice/Dice.min.js', './dice/world.offscreen.min.js', './dice/world.onscreen.min.js', './dice/world.none.min.js',

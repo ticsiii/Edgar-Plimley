@@ -89,7 +89,7 @@ section.tab.active{display:block;animation:fadein .15s ease}
 .hpbtn.dmg{color:#ff9d9d;border-color:var(--red-dk)}
 .hpbtn.heal{color:#a9d9a0;border-color:#4d7a42}
 .hpbar{height:10px;border-radius:6px;background:#3a2020;margin-top:10px;overflow:hidden}
-.hpbar div{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--red),#e07b4f);transition:width .25s}
+.hpbar div{height:100%;border-radius:6px;transition:width .3s,background-color .4s}
 .subrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .chip{
   border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;font-size:.82rem;
@@ -217,8 +217,8 @@ nav button.on{color:var(--gold)}
 .invrow .qty{font-family:"Patrick Hand",cursive;font-size:1.15rem;min-width:34px;text-align:center}
 .invrow .del{border-color:var(--red-dk);color:#ff9d9d}
 /* ---------- dice overlay ---------- */
-#dice-canvas{position:fixed;inset:0;z-index:70;display:none;background:rgba(10,8,5,.45)}
-#dice-canvas canvas{width:100%;height:100%}
+#dice-canvas{position:fixed;inset:0;z-index:70;display:none;background:rgba(10,8,5,.3)}
+#dice-canvas canvas{width:100%;height:100%;filter:brightness(1.35) saturate(1.18) contrast(1.04)}
 #diceOverlay{
   position:fixed;inset:0;z-index:72;display:none;align-items:center;justify-content:center;
   flex-direction:column;background:rgba(10,8,5,.8);backdrop-filter:blur(2px);overflow:hidden;
@@ -400,7 +400,7 @@ nav button.on{color:var(--gold)}
 
 <script>
 /* =================== STATE =================== */
-const MAX = {hp:30, slots1:4, slots2:3, sp:4, innate:2, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
+const MAX = {hp:30, slots1:4, slots2:3, sp:4, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
 const SEED_V = 2;
 const SEEDS = [
   {id:'cauldron',name:'Cooking Cauldron',type:'gear',qty:1,note:"Edgar's pride and laboratory"},
@@ -411,7 +411,7 @@ const SEEDS = [
   {id:'torch',name:'Torches',type:'consumable',qty:2,note:'1 hour of light each'},
   {id:'rations',name:'Rations (days)',type:'consumable',qty:10,note:'Edgar has strong opinions about these'},
 ];
-const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, innate:2, innateActive:false, tides:1,
+const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, tides:1,
   familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false,
   pixieDust:3, herb:3, gold:28, seedV:SEED_V,
   items:[{id:'rope',name:'Rope (50 ft)',type:'gear',qty:1,note:''}, ...SEEDS]};
@@ -439,8 +439,8 @@ const TERMS = {
   saveDC:{t:"Spell Save DC",b:"When your spell forces enemies to make a saving throw (like Thunderwave), they roll a d20 + their save bonus against your Spell Save DC of 13. Roll under 13 = they fail and eat the full effect.\n\nYour DC = 8 + 2 (proficiency) + 3 (Charisma)."},
   spellAttack:{t:"Spell Attack +5",b:"Some spells (Fire Bolt, Chromatic Orb...) require an attack roll: roll a d20, add +5, and compare to the target's Armor Class (AC). Equal or higher = hit, roll damage!\n\nYour +5 = +2 proficiency +3 Charisma."},
   components:{t:"Components (V/S/M)",b:"V = Verbal: you must speak the incantation (doesn't work if silenced/gagged).\nS = Somatic: you need a free hand for gestures.\nM = Material: you need your arcane focus or specific ingredients.\n\nMisty Step is V-only — Edgar can cast it with his hands tied, mid-mouthful of mystery stew."},
-  turn:{t:"Your Turn: what can you do?",b:"On each of your turns you get:\n\n• MOVE — up to 30 ft (can split around your action).\n• 1 ACTION — cast a spell (1A), Dash, Dodge, Help, Hide, use an object...\n• 1 BONUS ACTION — only if something grants one: Misty Step, Quickened Spell, Innate Sorcery, Adrenaline Rush.\n• 1 REACTION — one per round, on anyone's turn, when a trigger says so (e.g. an Opportunity Attack when an enemy walks away from you).\n\n⚠️ 2024 rule: if you cast a leveled spell as a Bonus Action (e.g. Misty Step), your Action that turn can only be a cantrip."},
-  advantage:{t:"Advantage / Disadvantage",b:"Advantage: roll TWO d20s, keep the higher. Disadvantage: roll two, keep the lower.\n\nEdgar gets advantage from: Tides of Chaos (once until it recharges), Innate Sorcery (on Sorcerer spell attacks while active), his familiar using the Help action, attacking a Prone enemy from melee, and more. They don't stack — two sources of advantage is still just two dice."},
+  turn:{t:"Your Turn: what can you do?",b:"On each of your turns you get:\n\n• MOVE — up to 30 ft (can split around your action).\n• 1 ACTION — cast a spell (1A), Dash, Dodge, Help, Hide, use an object...\n• 1 BONUS ACTION — only if something grants one: Misty Step, Quickened Spell, Adrenaline Rush.\n• 1 REACTION — one per round, on anyone's turn, when a trigger says so (e.g. an Opportunity Attack when an enemy walks away from you).\n\n⚠️ 2024 rule: if you cast a leveled spell as a Bonus Action (e.g. Misty Step), your Action that turn can only be a cantrip."},
+  advantage:{t:"Advantage / Disadvantage",b:"Advantage: roll TWO d20s, keep the higher. Disadvantage: roll two, keep the lower.\n\nEdgar gets advantage from: Tides of Chaos (once until it recharges), his familiar using the Help action, attacking a Prone enemy from melee, and more. They don't stack — two sources of advantage is still just two dice."},
   tempHP:{t:"Temporary HP",b:"A buffer of bonus hit points that absorbs damage before your real HP. They don't stack — if you get new temp HP, keep the higher number. They vanish after a Long Rest.\n\nEdgar gets 2 temp HP whenever he uses Adrenaline Rush."},
   inspiration:{t:"Heroic Inspiration",b:"If you have Heroic Inspiration, you can spend it to REROLL any die you just rolled (you must keep the new result). The DM awards it for great roleplay — so keep licking suspicious things.\n\nYou can only hold one at a time."},
   hitDice:{t:"Hit Dice",b:"Your personal healing pool: 4 six-sided dice (one per level). During a Short Rest you can spend any number of them — each die heals 1d6 + 3 (your CON).\n\nYou regain HALF your hit dice (2) at the end of each Long Rest."},
@@ -477,9 +477,9 @@ const SPELLS = [
 {id:'detectmagic',n:'Detect Magic',lv:1,src:'Sorcerer',time:'1 Action (or Ritual: +10 min)',rng:'Self (30 ft)',comp:'V/S',dur:'10 min',conc:true,rit:true,
  d:"For up to 10 minutes (concentration) you SENSE the presence of magic within 30 ft. As a Magic action, you can see a faint aura around any visible magical creature or object, and learn its school of magic.\n\nBlocked by 1 ft of stone, 1 inch of metal, a thin sheet of lead, or 3 ft of wood/dirt.",
  tip:"Almost always RITUAL-cast this (10 extra minutes, zero slots). Before touching/licking the glowing thing: detect first. This is Edgar's 'science'."},
-{id:'familiar',n:'Find Familiar',lv:1,src:'Magic Initiate (Wizard)',time:'1 hour',rng:'10 ft',comp:'V/S/M',dur:'Until dismissed',free:'familiar',
- d:"Summon a familiar spirit in animal form — Edgar's is an OWL. It acts on your initiative, can't attack, but can take other actions — most importantly HELP: it flutters at an enemy and gives the next ally attacking that enemy advantage.\n\nYou can communicate with it telepathically within 100 ft, and as a Magic action see through its eyes. It can deliver your touch-range spells. If it drops to 0 HP it vanishes; recast the spell to bring it back.\n\nFree to cast once per Long Rest (Magic Initiate); otherwise costs a 1st-level slot. Takes 1 hour to cast — do it in camp, not combat.",
- tip:"The owl has Flyby: it can swoop in, Help (advantage for an ally!), and fly away without provoking attacks. Best wingman. Edgar feeds it experimental snacks."},
+{id:'familiar',n:'Find Familiar',lv:1,src:'Magic Initiate (Wizard)',time:'1 hour',rng:'10 ft',comp:'V/S/M (10 gp)',dur:'Until dismissed',free:'familiar',
+ d:"Summon a familiar spirit in animal form — Edgar's is an OWL. It acts on your initiative, can't attack, but can take other actions — most importantly HELP: it flutters at an enemy and gives the next ally attacking that enemy advantage.\n\nYou can communicate with it telepathically within 100 ft, and as a Magic action see through its eyes. It can deliver your touch-range spells. If it drops to 0 HP it vanishes; recast the spell to bring it back.\n\n💰 Material cost: burning incense worth 10+ gp, CONSUMED by the spell — every casting costs you 10 gold (even the free Magic Initiate cast). Takes 1 hour — do it in camp, not combat.",
+ tip:"The owl has Flyby: it can swoop in, Help (advantage for an ally!), and fly away without provoking attacks. Best wingman. Each summon burns 10 gp of incense, so keep the owl alive — it sticks around indefinitely. Edgar feeds it experimental snacks."},
 {id:'magearmor',n:'Mage Armor',lv:1,src:'Sorcerer',time:'1 Action',rng:'Touch',comp:'V/S/M',dur:'8 hours',toggle:'mageArmor',
  d:"Touch a willing creature who isn't wearing armor: its base AC becomes 13 + its DEX modifier for 8 hours. For Edgar that's AC 14 (instead of 11). No concentration needed.",
  tip:"CAST THIS EVERY MORNING. 8 hours covers a whole adventuring day. The cast button below also flips your AC on the Hub."},
@@ -493,15 +493,12 @@ const SPELLS = [
 
 /* =================== ABILITIES =================== */
 const ABILITIES = [
-{id:'innate',n:'Innate Sorcery',uses:'innate',per:'Long Rest',action:'1 Bonus Action · 1 minute',
- d:"Unleash the simmering magic inside you for 1 minute: your Spell Save DC becomes 14 (+1), and you have ADVANTAGE on attack rolls with Sorcerer spells (Fire Bolt, Chromatic Orb, Sorcerous Burst).",
- tip:"Pop this at the start of a serious fight — a minute is ~10 rounds, basically the whole battle.",activate:true},
 {id:'tides',n:'Tides of Chaos',uses:'tides',per:'Long Rest*',action:'Free — when you roll',
  d:"Gain ADVANTAGE on one d20 roll of your choice: an attack roll, ability check, or saving throw.\n\nAfter you use it, your next leveled spell automatically triggers a Wild Magic Surge — and that surge gives Tides of Chaos back. Chaos feeds chaos.",
  tip:"Use it generously! The 'cost' is a guaranteed surge, which for Edgar is basically a personality trait."},
 {id:'familiarUse',n:'Find Familiar — free cast',uses:'familiar',per:'Long Rest',action:'1 hour',
- d:"Your Magic Initiate feat lets you cast Find Familiar once per Long Rest without spending a spell slot. (You can also cast it with a 1st-level slot if needed twice.)",
- tip:"If the owl is alive and well, you don't need to recast — it sticks around indefinitely."},
+ d:"Your Magic Initiate feat lets you cast Find Familiar once per Long Rest without spending a spell slot. (You can also cast it with a 1st-level slot if needed twice.)\n\n💰 Either way, the spell consumes 10 gp of incense per casting.",
+ tip:"If the owl is alive and well, you don't need to recast — it sticks around indefinitely (and your gold stays in your pouch)."},
 {id:'adrenaline',n:'Adrenaline Rush',uses:'adrenaline',per:'Short Rest',action:'1 Bonus Action',
  d:"As a Bonus Action, take the Dash action (move your speed again — 30 extra ft) AND gain 2 Temporary HP. Orc blood runs hot. 2 uses, back on a Short or Long Rest.",
  tip:"Chase the fleeing goblin, reach the dying friend, or sprint TOWARD the interesting smell. The temp HP is a free little shield — the button adds it to your Hub automatically."},
@@ -569,7 +566,7 @@ async function ensure3d(){
       theme:'dichroic', themeColor:'#eef1f8',
       scale:7, gravity:1.4, mass:1, friction:.8, restitution:.55,
       angularDamping:.4, linearDamping:.5, spinForce:6, throwForce:6,
-      settleTimeout:5000, shadowTransparency:.85, lightIntensity:1
+      settleTimeout:5000, shadowTransparency:.85, lightIntensity:1.7
     });
     await box.init();
     diceBox=box; return box;
@@ -665,7 +662,7 @@ function confirmRest(kind){
   const long = kind==='long';
   openSheet(`<h3>${long?'🌙 Long Rest':'☕ Short Rest'}</h3>
   <div class="body">${long
-    ? 'A full night’s sleep (8 hours). Restores: HP to 30, ALL spell slots, all 4 Sorcery Points, Innate Sorcery, Tides of Chaos, Find Familiar free cast, Relentless Endurance, Adrenaline Rush, and 2 Hit Dice. Clears temp HP, Mage Armor and concentration.'
+    ? 'A full night’s sleep (8 hours). Restores: HP to 30, ALL spell slots, all 4 Sorcery Points, Tides of Chaos, Find Familiar free cast, Relentless Endurance, Adrenaline Rush, and all 4 Hit Dice. Clears temp HP, Mage Armor and concentration.'
     : 'A 1-hour breather. Restores Adrenaline Rush (2 uses). You may also spend Hit Dice to heal — use the Spend Hit Die button on the Hub during/after the rest.'}</div>
   <div class="actions">
     <button class="castbtn" onclick="doRest('${kind}')">Take the rest</button>
@@ -675,9 +672,9 @@ function confirmRest(kind){
 function doRest(kind){
   closeSheet();
   if(kind==='long'){
-    set({hp:MAX.hp, temp:0, slots1:MAX.slots1, slots2:MAX.slots2, sp:MAX.sp, innate:MAX.innate,
-      innateActive:false, tides:MAX.tides, familiar:MAX.familiar, relentless:MAX.relentless,
-      adrenaline:MAX.adrenaline, hitDice:Math.min(MAX.hitDice, S.hitDice+2), mageArmor:false, conc:null});
+    set({hp:MAX.hp, temp:0, slots1:MAX.slots1, slots2:MAX.slots2, sp:MAX.sp,
+      tides:MAX.tides, familiar:MAX.familiar, relentless:MAX.relentless,
+      adrenaline:MAX.adrenaline, hitDice:MAX.hitDice, mageArmor:false, conc:null});
     toast('🌙 Long Rest complete. Everything restored!<br><b>Don’t forget to cast Mage Armor!</b>',4000);
   } else {
     set({adrenaline:MAX.adrenaline});
@@ -738,12 +735,11 @@ function castFree(id){
 function endConc(){ const c=S.conc; set({conc:null}); toast(`Concentration on <b>${c}</b> ended.`); }
 async function rollAttack(id){
   const sp=SPELLS.find(s=>s.id===id);
-  const adv = S.innateActive && sp.src==='Sorcerer';
   const label=`${sp.n} — attack roll`;
-  const r=await getDice(adv?'2d20':'1d20',20,label); if(!r) return;
-  const kept=Math.max(...r.values);
+  const r=await getDice('1d20',20,label); if(!r) return;
+  const kept=r.values[0];
   present({...r, sides:20, die:kept, mod:5, final:kept+5, crit:kept===20, fumble:kept===1, label,
-    detail:(adv?`Advantage (Innate Sorcery): ${r.values.join(' & ')} → keep ${kept}`:`d20: ${kept}`)+` +5 = <b>${kept+5}</b> vs the target's AC`
+    detail:`d20: ${kept} +5 = <b>${kept+5}</b> vs the target's AC`
       +(kept===20?'<br>Automatic hit — roll damage TWICE (all the dice)!':kept===1?'<br>Automatic miss. The magic sneezes.':'')});
 }
 async function rollDamage(id,expr){
@@ -786,13 +782,11 @@ function fontConvert(lv){
 function useAbility(a){
   if(S[a.uses]<=0){ toast(`${a.n}: no uses left (recharges on ${a.per.replace('*','')}).`); return; }
   S[a.uses]--;
-  if(a.id==='innate') S.innateActive=true;
   if(a.id==='adrenaline'){ S.temp=Math.max(S.temp,2); }
   if(a.id==='relentless'){ S.hp=Math.max(S.hp,1); }
   if(a.id==='tides'){ toast('🌊 Tides of Chaos! Advantage on one d20 roll.<br>⚠️ Your next leveled spell auto-surges — which recharges this!',5200); save(); renderAll(); return; }
   save(); renderAll();
-  toast(a.id==='innate' ? '✨ Innate Sorcery ACTIVE (1 min): Save DC 14, advantage on Sorcerer spell attacks. Attack rolls in the app now use it!'
-      : a.id==='adrenaline' ? '🏃 Adrenaline Rush: Dash as Bonus Action + 2 temp HP (added).'
+  toast(a.id==='adrenaline' ? '🏃 Adrenaline Rush: Dash as Bonus Action + 2 temp HP (added).'
       : a.id==='relentless' ? '💪 Relentless Endurance: you drop to 1 HP instead of 0!'
       : `Used ${a.n}.`,4500);
 }
@@ -845,6 +839,9 @@ function saveNewItem(){
   S.items.push({id:'i'+Date.now().toString(36), name, type:newItemType, qty, note:$('itNote').value.trim()});
   save(); renderAll(); closeSheet();
   toast(`${newItemType==='gear'?'🎒':'🧪'} <b>${esc(name)}</b> added to your inventory (×${qty}).`);
+}
+function changeGold(n){
+  S.gold=Math.max(0,Math.min(99999,S.gold+n)); save(); renderAll();
 }
 function setGold(){
   const v = prompt('How much gold do you have? (gp)', S.gold);
@@ -914,7 +911,7 @@ function renderHub(){
       <button class="hpbtn heal" onclick="hpChange(1)">+1</button>
       <button class="hpbtn heal" onclick="hpChange(5)">+5</button>
     </div>
-    <div class="hpbar"><div style="width:${hpPct}%"></div></div>
+    <div class="hpbar"><div style="width:${hpPct}%;background-color:hsl(${Math.round(hpPct*1.2)},62%,46%)"></div></div>
     <div class="subrow">
       <button class="chip" onclick="spendHitDie()">🎲 Spend Hit Die (${S.hitDice}/4) — heal 1d6+3</button>
       <button class="chip" onclick="showTerm('hitDice')" style="border:none;color:var(--blue)">what's this?</button>
@@ -1029,10 +1026,7 @@ function toggleSpell(id){ openSpells.has(id)?openSpells.delete(id):openSpells.ad
 
 function renderAbil(){
   $('tab-abil').innerHTML =
-  (S.innateActive?`<div class="card" style="border-color:var(--gold)"><h2>✨ Innate Sorcery ACTIVE</h2>
-    <div class="muted">Save DC 14 · advantage on Sorcerer spell attacks · 1 minute</div>
-    <div class="castrow" style="margin-top:8px"><button class="castbtn alt" onclick="set({innateActive:false});toast('Innate Sorcery ended.')">End effect</button></div></div>`:'')
-  + ABILITIES.map(a=>`
+  ABILITIES.map(a=>`
   <div class="card abil">
     <h2>${a.n} <span class="grow"></span><span class="muted" style="font-size:.72rem">${a.action}</span></h2>
     <div class="desc">${a.d.replace(/\n/g,'<br>')}</div>
@@ -1084,9 +1078,9 @@ function renderStats(){
   </div>
   <div class="card">
     <h2>Magic Items</h2>
-    <b class="hand" style="font-size:1.1rem">🪄 Mysterious Wand</b>
-    <div class="desc" style="margin-top:4px">Found in a previous adventure. Effect unknown. Attunement unknown. Taste: woody, faint ozone, notes of destiny.</div>
-    <div class="tip">💡 Science protocol: 1) ritual-cast Detect Magic on it (free!), 2) ask the DM how identification works at your table (Identify spell, a Short Rest of focused study, or trial &amp; error), 3) only THEN wave it at things. Edgar will skip straight to 3.</div>
+    <b class="hand" style="font-size:1.1rem">🪄 Wizarding Wand</b>
+    <div class="desc" style="margin-top:4px">From a previous adventure. It once held 3 castings of <i>Silence</i> — all spent. The wand is now empty and does nothing.<br><br><i>Edgar doesn't know any of this. He's convinced it helps his spells, and honestly, his confidence HAS been better lately. Taste: woody, faint ozone, notes of destiny.</i></div>
+    <div class="tip">💡 Keep waving it dramatically while casting. The DM knows it's empty; Edgar absolutely does not. This is roleplay GOLD.</div>
   </div>
   <div class="card">
     <h2>Consumables</h2>
@@ -1110,8 +1104,10 @@ function renderStats(){
   <div class="card">
     <h2>My Inventory</h2>
     <div class="invrow">
-      <span class="iname"><b>💰 Gold</b><div class="muted">tap the amount to set it</div></span>
+      <span class="iname"><b>💰 Gold</b><div class="muted">tap the amount to type an exact number</div></span>
+      <button class="chip" onclick="changeGold(-1)" ${S.gold<=0?'disabled':''}>−</button>
       <button class="chip warn" onclick="setGold()">${S.gold} gp</button>
+      <button class="chip" onclick="changeGold(1)">＋</button>
     </div>
     ${S.items.length ? S.items.map(it=>`
       <div class="invrow">
