@@ -217,11 +217,24 @@ nav button.on{color:var(--gold)}
 .invrow .qty{font-family:"Patrick Hand",cursive;font-size:1.15rem;min-width:34px;text-align:center}
 .invrow .del{border-color:var(--red-dk);color:#ff9d9d}
 /* ---------- dice overlay ---------- */
+#dice-canvas{position:fixed;inset:0;z-index:70;display:none;background:rgba(10,8,5,.88)}
+#dice-canvas canvas{width:100%;height:100%}
 #diceOverlay{
-  position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
+  position:fixed;inset:0;z-index:72;display:none;align-items:center;justify-content:center;
   flex-direction:column;background:rgba(10,8,5,.8);backdrop-filter:blur(2px);overflow:hidden;
   --hex:polygon(50% 2%,92% 26%,92% 74%,50% 98%,8% 74%,8% 26%);
 }
+#diceOverlay.three{background:transparent;backdrop-filter:none}
+#diceOverlay.three #dieWrap{display:none}
+#resultBig{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  font-family:"Patrick Hand",cursive;font-size:4.6rem;color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.85),0 0 20px rgba(170,205,255,.45);
+}
+#diceOverlay.three #resultBig{display:flex}
+#diceOverlay.three.settled #resultBig,#diceOverlay.three.total #resultBig,#diceOverlay.three.crit #resultBig{animation:pop .3s ease}
+#diceOverlay.three.crit #resultBig{color:var(--gold);text-shadow:0 0 24px var(--gold),0 2px 6px rgba(0,0,0,.7)}
+#diceOverlay.three.fumble #resultBig{color:var(--red);text-shadow:0 0 18px var(--red),0 2px 6px rgba(0,0,0,.7);animation:shake .45s ease}
 #diceOverlay.show{display:flex}
 #diceStage{position:relative;width:100%;height:200px;display:flex;align-items:center;justify-content:center;perspective:800px}
 #dieWrap{position:relative;width:156px;height:156px;transform-style:preserve-3d;filter:drop-shadow(0 10px 24px rgba(140,180,255,.25))}
@@ -252,8 +265,8 @@ nav button.on{color:var(--gold)}
 #dieWrap svg.facets{position:absolute;inset:0;width:100%;height:100%}
 #diceNum{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:"Patrick Hand",cursive;font-size:3.5rem;color:#b5683a;padding-top:4px;
-  text-shadow:0 1px 1px rgba(255,235,210,.7),0 -1px 2px rgba(80,35,10,.45),0 0 12px rgba(255,180,120,.3);
+  font-family:"Patrick Hand",cursive;font-size:3.5rem;color:#3a2a1a;padding-top:4px;
+  text-shadow:0 1px 1px rgba(255,245,225,.55);
 }
 #modChip{
   position:absolute;left:calc(50% + 92px);top:50%;transform:translateY(-50%);
@@ -345,8 +358,10 @@ nav button.on{color:var(--gold)}
   <button data-tab="stats"><span class="ic">🎲</span>Stats</button>
 </nav>
 
+<div id="dice-canvas"></div>
 <div id="diceOverlay" onclick="hideRoll()">
   <div id="diceStage">
+    <div id="resultBig"></div>
     <div id="dieWrap">
       <div class="crystal"><div class="flare"></div></div>
       <svg class="facets" viewBox="0 0 100 100" aria-hidden="true">
@@ -519,11 +534,87 @@ function infoBtn(term){ return `<button class="info" onclick="event.stopPropagat
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* =================== DICE OVERLAY =================== */
-let diceCycle=null, diceTimers=[];
+let diceCycle=null, diceTimers=[], rollSeq=0, diceBox=null, diceBoxFailed=false;
 const reducedMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 function showEgg(src){ $('lightboxImg').src=src; $('lightbox').classList.add('show'); }
-function showRoll({sides=20, die=null, mod=0, final, label='', detail='', crit=false, fumble=false}){
+const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} };
+function clearDiceTimers(){ clearInterval(diceCycle); diceTimers.forEach(clearTimeout); diceTimers=[]; }
+function hideRoll(){
+  rollSeq++; clearDiceTimers();
+  $('diceOverlay').className='';
+  $('dice-canvas').style.display='none';
+  if(diceBox){ try{ diceBox.clear(); }catch(e){} }
+}
+
+/* --- 3D physics dice (dice-box: WebGL + ammo.js). Falls back to the CSS crystal. --- */
+async function ensure3d(){
+  if(diceBox) return diceBox;
+  if(diceBoxFailed || reducedMotion) return null;
+  try{
+    $('dice-canvas').style.display='block';
+    const mod = await import('./dice/dice-box.es.min.js');
+    const box = new mod.default('#dice-canvas', {
+      assetPath:'/dice/assets/',
+      theme:'default', themeColor:'#d9dfee',
+      scale:7, gravity:1.4, mass:1, friction:.8, restitution:.55,
+      angularDamping:.4, linearDamping:.5, spinForce:6, throwForce:6,
+      settleTimeout:5000, shadowTransparency:.85, lightIntensity:1
+    });
+    await box.init();
+    diceBox=box; return box;
+  }catch(e){ diceBoxFailed=true; $('dice-canvas').style.display='none'; return null; }
+}
+/* Roll dice. Returns {values:[...], is3d, seq} or null if the user dismissed mid-roll. */
+async function getDice(notation, sides, label){
   hideRoll();
+  const seq=rollSeq;
+  const ov=$('diceOverlay');
+  $('diceLabel').innerHTML=label; $('diceDetail').innerHTML='';
+  $('diceBadge').textContent=''; $('modChip').textContent=''; $('resultBig').textContent='';
+  ov.className='show three';
+  const box=await ensure3d();
+  if(seq!==rollSeq) return null;
+  if(box){
+    $('dice-canvas').style.display='block';
+    try{
+      const res=await Promise.race([ box.roll(notation),
+        new Promise((_,rej)=>setTimeout(()=>rej(new Error('settle timeout')),9000)) ]);
+      if(seq!==rollSeq) return null;
+      return {values:res.map(d=>d.value), is3d:true, seq};
+    }catch(e){ if(seq!==rollSeq) return null; $('dice-canvas').style.display='none'; }
+  }
+  const cnt=+notation.split('d')[0];
+  return {values:Array.from({length:cnt},()=>roll(sides)), is3d:false, seq};
+}
+function present(r){
+  if(!r || r.seq!==rollSeq) return;
+  if(r.is3d) present3d(r); else showRollCss(r);
+}
+/* 3D mode: dice already lie on the table; stage the arithmetic on top (BG3 style). */
+function present3d(r){
+  const ov=$('diceOverlay');
+  const later=(fn,ms)=>diceTimers.push(setTimeout(fn,ms));
+  $('diceBadge').textContent=r.crit?'✨ CRITICAL! ✨':r.fumble?'natural 1...':'';
+  $('modChip').textContent=r.mod?(r.mod>0?`+${r.mod}`:`${r.mod}`):'';
+  const raw=(r.die==null)?r.final:r.die;
+  const finish=()=>{
+    $('resultBig').textContent=r.final;
+    ov.className='show three '+(r.crit?'crit':r.fumble?'fumble':'total');
+    $('diceDetail').innerHTML=r.detail;
+    buzz(r.crit?[40,60,90]:r.fumble?[80]:35);
+    later(hideRoll,4500);
+  };
+  $('resultBig').textContent=raw;
+  ov.className='show three settled';
+  buzz(22);
+  if(r.mod && raw!==r.final){
+    later(()=>{ ov.className='show three modphase'; },800);
+    later(finish,1400);
+  } else later(finish,500);
+}
+/* CSS fallback: the frosted crystal tumbles across the screen. */
+function showRollCss({sides=20, die=null, mod=0, final, label='', detail='', crit=false, fumble=false}){
+  clearDiceTimers();
   const ov=$('diceOverlay');
   ov.className='show rolling';
   $('diceLabel').innerHTML=label;
@@ -535,7 +626,7 @@ function showRoll({sides=20, die=null, mod=0, final, label='', detail='', crit=f
   const finish = ()=>{
     ov.className='show '+(crit?'crit':fumble?'fumble':'total');
     $('diceDetail').innerHTML=detail;
-    try{ navigator.vibrate && navigator.vibrate(crit?[40,60,90]:fumble?[80]:35); }catch(e){}
+    buzz(crit?[40,60,90]:fumble?[80]:35);
     diceTimers.push(setTimeout(hideRoll, 4000));
   };
   if(reducedMotion){ $('diceNum').textContent=final; finish(); return; }
@@ -545,16 +636,11 @@ function showRoll({sides=20, die=null, mod=0, final, label='', detail='', crit=f
     $('diceNum').textContent=raw;            // act 1: the naked die result
     if(mod && raw!==final){
       ov.className='show settled';
-      try{ navigator.vibrate && navigator.vibrate(22); }catch(e){}
+      buzz(22);
       later(()=>{ ov.className='show modphase'; }, 700);          // act 2: modifier flies in
       later(()=>{ $('diceNum').textContent=final; finish(); }, 1250); // act 3: the total
     } else { $('diceNum').textContent=final; finish(); }
   }, 1080);
-}
-function hideRoll(){
-  clearInterval(diceCycle);
-  diceTimers.forEach(clearTimeout); diceTimers=[];
-  $('diceOverlay').className='';
 }
 
 /* =================== SHEET / MODAL =================== */
@@ -605,12 +691,13 @@ function hpChange(n){
   }
   save(); renderAll();
 }
-function spendHitDie(){
+async function spendHitDie(){
   if(S.hitDice<=0){ toast('No Hit Dice left — Long Rest gives back 2.'); return; }
-  const r=roll(6); S.hitDice--; S.hp=Math.min(MAX.hp,S.hp+r+3);
-  save(); renderAll();
-  showRoll({sides:6, die:r, mod:3, final:r+3, label:'Hit Die — healing',
-    detail:`d6: ${r} +3 CON = <b>healed ${r+3} HP</b> (${S.hitDice}/4 dice left)`});
+  const r=await getDice('1d6',6,'Hit Die — healing'); if(!r) return;
+  const v=r.values[0];
+  S.hitDice--; S.hp=Math.min(MAX.hp,S.hp+v+3); save(); renderAll();
+  present({...r, sides:6, die:v, mod:3, final:v+3, label:'Hit Die — healing',
+    detail:`d6: ${v} +3 CON = <b>healed ${v+3} HP</b> (${S.hitDice}/4 dice left)`});
 }
 function togglePip(key,i){
   // i = index of pip tapped (0-based). Filled pips are the first S[key].
@@ -638,31 +725,33 @@ function castFree(id){
   save(); renderAll(); toast(msg,4000);
 }
 function endConc(){ const c=S.conc; set({conc:null}); toast(`Concentration on <b>${c}</b> ended.`); }
-function rollAttack(id){
+async function rollAttack(id){
   const sp=SPELLS.find(s=>s.id===id);
   const adv = S.innateActive && sp.src==='Sorcerer';
-  const d=roll(20), d2=adv?roll(20):null;
-  const kept=adv?Math.max(d,d2):d;
-  showRoll({sides:20, die:kept, mod:5, final:kept+5, crit:kept===20, fumble:kept===1,
-    label:`${sp.n} — attack roll`,
-    detail:(adv?`Advantage (Innate Sorcery): ${d} & ${d2} → keep ${kept}`:`d20: ${kept}`)+` +5 = <b>${kept+5}</b> vs the target's AC`
+  const label=`${sp.n} — attack roll`;
+  const r=await getDice(adv?'2d20':'1d20',20,label); if(!r) return;
+  const kept=Math.max(...r.values);
+  present({...r, sides:20, die:kept, mod:5, final:kept+5, crit:kept===20, fumble:kept===1, label,
+    detail:(adv?`Advantage (Innate Sorcery): ${r.values.join(' & ')} → keep ${kept}`:`d20: ${kept}`)+` +5 = <b>${kept+5}</b> vs the target's AC`
       +(kept===20?'<br>Automatic hit — roll damage TWICE (all the dice)!':kept===1?'<br>Automatic miss. The magic sneezes.':'')});
 }
-function rollDamage(id,expr){
+async function rollDamage(id,expr){
   const sp=SPELLS.find(s=>s.id===id);
-  const r=rollDice(expr);
+  const sides=+expr.split('d')[1];
+  const label=`${sp.n} — damage (${expr})`;
+  const r=await getDice(expr,sides,label); if(!r) return;
+  const total=r.values.reduce((a,b)=>a+b,0);
   let extra='';
-  if(id==='chromatic'){ const c={}; let dup=false; r.rolls.forEach(x=>{c[x]=(c[x]||0)+1; if(c[x]>1)dup=true;});
+  if(id==='chromatic'){ const c={}; let dup=false; r.values.forEach(x=>{c[x]=(c[x]||0)+1; if(c[x]>1)dup=true;});
     if(dup) extra='<br>🟣 <b>Doubles!</b> The orb LEAPS to a new target within 30 ft — roll a new attack!'; }
-  if(id==='sorcburst' && r.rolls.includes(8)) extra='<br>💥 <b>You rolled an 8!</b> Roll an extra d8 and add it (can chain ×3).';
-  showRoll({sides:+expr.split('d')[1], final:r.total,
-    label:`${sp.n} — damage (${expr})`,
-    detail:`[${r.rolls.join(', ')}] = <b>${r.total} ${sp.dtype||''} damage</b>${extra}`});
+  if(id==='sorcburst' && r.values.includes(8)) extra='<br>💥 <b>You rolled an 8!</b> Roll an extra d8 and add it (can chain ×3).';
+  present({...r, sides, final:total, label,
+    detail:`[${r.values.join(', ')}] = <b>${total} ${sp.dtype||''} damage</b>${extra}`});
 }
-function rollSkill(name,bonus){
-  const d=roll(20);
-  showRoll({sides:20, die:d, mod:bonus, final:d+bonus, crit:d===20, fumble:d===1,
-    label:name,
+async function rollSkill(name,bonus){
+  const r=await getDice('1d20',20,name); if(!r) return;
+  const d=r.values[0];
+  present({...r, sides:20, die:d, mod:bonus, final:d+bonus, crit:d===20, fumble:d===1, label:name,
     detail:`d20: ${d} ${fmt(bonus)} = <b>${d+bonus}</b>`});
 }
 function spendSP(n,label){
@@ -781,16 +870,18 @@ function addItem(key,label){
   S[key]++; save(); renderAll();
   toast(`+1 <b>${label}</b> — now ${S[key]}.`);
 }
-function rollSurge(){
-  const d=roll(100);
-  showRoll({sides:100, final:d, label:'🌀 Wild Magic Surge — d100',
+async function rollSurge(){
+  const r=await getDice('1d100',100,'🌀 Wild Magic Surge — d100'); if(!r) return;
+  const d=r.values[0];
+  present({...r, sides:100, final:d, label:'🌀 Wild Magic Surge — d100',
     detail:`Look up <b>${d}</b> on the surge table (PHB 2024, p. 144) with your DM!`});
 }
-function surgeCheck(){
-  const d=roll(20);
-  showRoll({sides:20, final:d, fumble:d===1, label:'Wild Magic — surge check',
+async function surgeCheck(){
+  const r=await getDice('1d20',20,'Wild Magic — surge check'); if(!r) return;
+  const d=r.values[0];
+  present({...r, sides:20, final:d, fumble:d===1, label:'Wild Magic — surge check',
     detail:d===1?'🌀 <b>SURGE!</b> Rolling the d100...':'No surge. The magic behaves. For now.'});
-  if(d===1) setTimeout(rollSurge, 2400);
+  if(d===1) setTimeout(rollSurge, 2600);
 }
 
 /* =================== RENDER =================== */
