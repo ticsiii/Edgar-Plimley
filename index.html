@@ -206,6 +206,16 @@ nav button.on{color:var(--gold)}
 #sheet h3{color:var(--gold);font-size:1.3rem;margin-bottom:8px}
 #sheet .body{font-size:.92rem;line-height:1.55;white-space:pre-line}
 #sheet .actions{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap}
+.field{margin-bottom:11px}
+.field label{font-size:.78rem;color:var(--dim);display:block;margin-bottom:4px}
+.field input{width:100%;background:var(--card2);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font-size:1rem;font-family:inherit}
+.field input:focus{outline:none;border-color:var(--gold)}
+.invrow{display:flex;align-items:center;gap:7px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.invrow:last-of-type{border-bottom:none}
+.invrow .iname{flex:1;min-width:0}
+.invrow .iname b{font-family:"Patrick Hand",cursive;font-size:1.08rem;font-weight:400}
+.invrow .qty{font-family:"Patrick Hand",cursive;font-size:1.15rem;min-width:34px;text-align:center}
+.invrow .del{border-color:var(--red-dk);color:#ff9d9d}
 #toast{
   position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
   background:#0e0c09;border:1.5px solid var(--gold);color:var(--ink);border-radius:13px;
@@ -270,9 +280,10 @@ nav button.on{color:var(--gold)}
 const MAX = {hp:30, slots1:4, slots2:3, sp:4, innate:2, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
 const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, innate:2, innateActive:false, tides:1,
   familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false,
-  pixieDust:3, herb:3};
+  pixieDust:3, herb:3, items:[{id:'rope',name:'Rope (50 ft)',type:'gear',qty:1,note:''}]};
+const freshDefault = () => JSON.parse(JSON.stringify(DEFAULT));
 let S = load();
-function load(){ try{ const s = JSON.parse(localStorage.getItem('edgarState')); return s ? Object.assign({},DEFAULT,s) : {...DEFAULT}; }catch(e){ return {...DEFAULT}; } }
+function load(){ try{ const s = JSON.parse(localStorage.getItem('edgarState')); return s ? Object.assign(freshDefault(),s) : freshDefault(); }catch(e){ return freshDefault(); } }
 function save(){ localStorage.setItem('edgarState', JSON.stringify(S)); }
 function set(patch){ Object.assign(S, patch); save(); renderAll(); }
 
@@ -386,6 +397,7 @@ function rollDice(expr){ // "3d8" -> {total, rolls}
   return {total:rolls.reduce((a,b)=>a+b,0), rolls};
 }
 function infoBtn(term){ return `<button class="info" onclick="event.stopPropagation();showTerm('${term}')">i</button>`; }
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* =================== SHEET / MODAL =================== */
 function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
@@ -534,9 +546,61 @@ function importState(){
   try{
     const s = JSON.parse(atob(code.trim()));
     if(typeof s.hp !== 'number') throw new Error('bad');
-    S = Object.assign({},DEFAULT,s); save(); renderAll();
+    S = Object.assign(freshDefault(),s); save(); renderAll();
     toast('📥 Backup restored!');
   }catch(e){ toast('❌ That code doesn\'t look right — make sure you pasted the whole thing.'); }
+}
+/* ---- custom inventory ---- */
+let newItemType='gear';
+function openAddItem(){
+  newItemType='gear';
+  openSheet(`<h3>＋ Add Item</h3>
+  <div class="field"><label>Name</label><input id="itName" placeholder="e.g. Rope (50 ft), Healing Potion" maxlength="40"></div>
+  <div class="field"><label>Type</label>
+    <div class="subrow" style="margin-top:0">
+      <button class="chip on" id="typeGear" onclick="pickType('gear')">🎒 Gear — stuff you carry</button>
+      <button class="chip" id="typeCons" onclick="pickType('consumable')">🧪 Consumable — gets used up</button>
+    </div>
+  </div>
+  <div class="field"><label>How many?</label><input id="itQty" type="number" value="1" min="1" max="999" inputmode="numeric"></div>
+  <div class="field"><label>Note (optional)</label><input id="itNote" placeholder="e.g. heals 2d4+2 · from the goblin cave" maxlength="80"></div>
+  <div class="actions">
+    <button class="castbtn" onclick="saveNewItem()">Add it!</button>
+    <button class="castbtn alt" onclick="closeSheet()">Cancel</button>
+  </div>`);
+  setTimeout(()=>$('itName').focus(),250);
+}
+function pickType(t){
+  newItemType=t;
+  $('typeGear').classList.toggle('on',t==='gear');
+  $('typeCons').classList.toggle('on',t==='consumable');
+}
+function saveNewItem(){
+  const name=$('itName').value.trim();
+  if(!name){ $('itName').focus(); return; }
+  const qty=Math.max(1,Math.min(999,parseInt($('itQty').value)||1));
+  S.items.push({id:'i'+Date.now().toString(36), name, type:newItemType, qty, note:$('itNote').value.trim()});
+  save(); renderAll(); closeSheet();
+  toast(`${newItemType==='gear'?'🎒':'🧪'} <b>${esc(name)}</b> added to your inventory (×${qty}).`);
+}
+function useCustom(id){
+  const it=S.items.find(x=>x.id===id); if(!it||it.qty<=0) return;
+  it.qty--; save(); renderAll();
+  toast(`Used <b>${esc(it.name)}</b> — ${it.qty} left.`);
+}
+function incCustom(id,n){
+  const it=S.items.find(x=>x.id===id); if(!it) return;
+  it.qty=Math.max(it.type==='gear'?1:0,Math.min(999,it.qty+n));
+  save(); renderAll();
+}
+function removeCustom(id){
+  const it=S.items.find(x=>x.id===id); if(!it) return;
+  openSheet(`<h3>Remove ${esc(it.name)}?</h3>
+  <div class="body">It disappears from your inventory. (Edgar would never throw anything away, but it's your call.)</div>
+  <div class="actions">
+    <button class="castbtn" onclick="(function(){S.items=S.items.filter(x=>x.id!=='${id}');save();renderAll();closeSheet();toast('Removed.');})()">Remove</button>
+    <button class="castbtn alt" onclick="closeSheet()">Keep it</button>
+  </div>`);
 }
 function useItem(key,label){
   if(S[key]<=0){ toast(`No ${label} left.`); return; }
@@ -768,6 +832,25 @@ function renderStats(){
         <button class="castbtn roll" onclick="addItem('herb','Devilweed')">+1</button>
       </div>
     </div>
+  </div>
+  <div class="card">
+    <h2>My Inventory</h2>
+    ${S.items.length ? S.items.map(it=>`
+      <div class="invrow">
+        <span class="iname"><b>${esc(it.name)}</b>${it.note?`<div class="muted">${esc(it.note)}</div>`:''}</span>
+        ${it.type==='consumable'
+          ? `<button class="chip" onclick="useCustom('${it.id}')" ${it.qty<=0?'disabled':''}>Use — ${it.qty} left</button>
+             <button class="chip" onclick="incCustom('${it.id}',1)">+1</button>`
+          : `<button class="chip" onclick="incCustom('${it.id}',-1)" ${it.qty<=1?'disabled':''}>−</button>
+             <span class="qty">×${it.qty}</span>
+             <button class="chip" onclick="incCustom('${it.id}',1)">＋</button>`}
+        <button class="chip del" onclick="removeCustom('${it.id}')">✕</button>
+      </div>`).join('')
+    : '<div class="muted">Nothing yet — add your gear (rope, rations, torches...) and any potions or consumables you pick up.</div>'}
+    <div class="castrow" style="margin-top:12px">
+      <button class="castbtn alt" onclick="openAddItem()">＋ Add item</button>
+    </div>
+    <div class="doodle">Gear keeps a count · consumables get a Use button. Everything is saved automatically.</div>
   </div>
   <div class="card">
     <h2>Proficiencies & Languages</h2>
