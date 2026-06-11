@@ -219,31 +219,59 @@ nav button.on{color:var(--gold)}
 /* ---------- dice overlay ---------- */
 #diceOverlay{
   position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;
-  flex-direction:column;background:rgba(10,8,5,.78);backdrop-filter:blur(2px);
+  flex-direction:column;background:rgba(10,8,5,.8);backdrop-filter:blur(2px);overflow:hidden;
+  --hex:polygon(50% 2%,92% 26%,92% 74%,50% 98%,8% 74%,8% 26%);
 }
 #diceOverlay.show{display:flex}
-#dieWrap{position:relative;width:150px;height:150px}
-#diceOverlay.rolling #dieWrap{animation:tumble .95s cubic-bezier(.2,.7,.3,1)}
-@keyframes tumble{
-  0%{transform:rotate(0deg) scale(.5) translateY(-40px)}
-  35%{transform:rotate(300deg) scale(1.18)}
-  65%{transform:rotate(560deg) scale(.92)}
-  100%{transform:rotate(720deg) scale(1)}
+#diceStage{position:relative;width:100%;height:200px;display:flex;align-items:center;justify-content:center;perspective:800px}
+#dieWrap{position:relative;width:156px;height:156px;transform-style:preserve-3d;filter:drop-shadow(0 10px 24px rgba(140,180,255,.25))}
+#diceOverlay.rolling #dieWrap{animation:travel 1.05s cubic-bezier(.22,.61,.36,1)}
+@keyframes travel{
+  0%{transform:translateX(-60vw) rotate(0deg) rotateY(70deg) scale(.5);opacity:.3}
+  55%{transform:translateX(9vw) rotate(500deg) rotateY(-35deg) scale(1.14);opacity:1}
+  78%{transform:translateX(-3vw) rotate(640deg) rotateY(18deg) scale(.94)}
+  100%{transform:translateX(0) rotate(720deg) rotateY(0) scale(1)}
 }
-#dieWrap svg{width:100%;height:100%;filter:drop-shadow(0 6px 18px rgba(217,164,65,.35))}
+.crystal{
+  position:absolute;inset:0;clip-path:var(--hex);
+  background:linear-gradient(152deg,rgba(255,255,255,.32) 0%,rgba(190,210,255,.10) 32%,rgba(130,150,215,.16) 54%,rgba(225,238,255,.25) 76%,rgba(255,255,255,.12) 100%),rgba(26,25,40,.62);
+}
+.crystal .flare{
+  position:absolute;inset:-30%;
+  background:conic-gradient(from 20deg at 50% 55%,rgba(255,70,130,.55),rgba(255,195,70,.5),rgba(90,255,180,.42),rgba(70,160,255,.55),rgba(175,90,255,.5),rgba(255,70,130,.55));
+  filter:blur(16px) saturate(1.6);opacity:.55;mix-blend-mode:screen;
+  animation:flarespin 5s linear infinite;
+}
+@keyframes flarespin{to{transform:rotate(360deg)}}
+#dieWrap svg.facets{position:absolute;inset:0;width:100%;height:100%}
 #diceNum{
   position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  font-family:"Patrick Hand",cursive;font-size:3.4rem;color:var(--ink);padding-top:6px;
+  font-family:"Patrick Hand",cursive;font-size:3.5rem;color:#fff;padding-top:4px;
+  text-shadow:0 0 16px rgba(170,205,255,.9),0 2px 3px rgba(0,0,0,.65);
 }
-#diceOverlay.settled #dieWrap{animation:pop .3s ease}
-@keyframes pop{0%{transform:scale(1.3)}100%{transform:scale(1)}}
-#diceOverlay.crit #dieWrap{animation:pop .3s ease}
-#diceOverlay.crit #diceNum{color:var(--gold);text-shadow:0 0 18px var(--gold)}
-#diceOverlay.crit #dieWrap svg{filter:drop-shadow(0 0 26px var(--gold))}
-#diceOverlay.fumble #dieWrap{animation:shake .45s ease}
-#diceOverlay.fumble #diceNum{color:var(--red);text-shadow:0 0 14px var(--red)}
-#diceOverlay.fumble #dieWrap svg{filter:drop-shadow(0 0 20px rgba(214,69,69,.6))}
+#modChip{
+  position:absolute;left:calc(50% + 92px);top:50%;transform:translateY(-50%);
+  font-family:"Patrick Hand",cursive;font-size:2.3rem;color:var(--gold);opacity:0;
+  text-shadow:0 0 12px rgba(217,164,65,.7);
+}
+#diceOverlay.modphase #modChip{animation:modfly .55s ease forwards}
+@keyframes modfly{
+  0%{opacity:0;transform:translate(44px,-50%) scale(.7)}
+  35%{opacity:1;transform:translate(0,-50%) scale(1)}
+  100%{opacity:0;transform:translate(-64px,-50%) scale(.4)}
+}
+#diceOverlay.settled #dieWrap,#diceOverlay.total #dieWrap,#diceOverlay.crit #dieWrap{animation:pop .3s ease}
+@keyframes pop{0%{transform:scale(1.32)}100%{transform:scale(1)}}
+#diceOverlay.crit #diceNum{color:var(--gold);text-shadow:0 0 20px var(--gold),0 2px 3px rgba(0,0,0,.6)}
+#diceOverlay.crit #dieWrap{filter:drop-shadow(0 0 30px var(--gold))}
+#diceOverlay.crit .crystal .flare{opacity:.85}
+#diceOverlay.fumble #dieWrap{animation:shake .45s ease;filter:drop-shadow(0 0 22px rgba(214,69,69,.65))}
+#diceOverlay.fumble #diceNum{color:var(--red);text-shadow:0 0 16px var(--red),0 2px 3px rgba(0,0,0,.6)}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px) rotate(-4deg)}40%{transform:translateX(8px) rotate(3deg)}60%{transform:translateX(-6px)}80%{transform:translateX(5px)}}
+/* ---------- easter egg lightbox ---------- */
+#lightbox{position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;background:rgba(8,6,4,.93)}
+#lightbox.show{display:flex}
+#lightbox img{max-width:96vw;max-height:92vh;border-radius:14px;box-shadow:0 12px 60px rgba(0,0,0,.85)}
 #diceBadge{
   font-family:"Patrick Hand",cursive;font-size:1.5rem;height:2rem;margin-top:4px;
   color:var(--gold);opacity:0;transition:opacity .15s;
@@ -271,9 +299,9 @@ nav button.on{color:var(--gold)}
 <header>
   <div class="row">
     <div>
-      <h1>Edgar's Wizarding Book ✦</h1>
+      <h1>Edgar's Wizarding Book <span onclick="showEgg('edgar-adventure.jpg')">✦</span></h1>
       <div class="sub">Edgar Plimley · Orc Sorcerer 4</div>
-      <div class="sub">Wild Magic · <em>(definitely a Wizard)</em></div>
+      <div class="sub">Wild Magic · <em>(definitely a <span onclick="showEgg('edgar-magic.jpg')">Wizard</span>)</em></div>
     </div>
     <div class="restbtns">
       <button class="restbtn" onclick="confirmRest('short')">☕ Short</button>
@@ -312,22 +340,28 @@ nav button.on{color:var(--gold)}
 </nav>
 
 <div id="diceOverlay" onclick="hideRoll()">
-  <div id="dieWrap">
-    <svg viewBox="0 0 100 100" aria-hidden="true">
-      <polygon points="50,3 91,26 91,74 50,97 9,74 9,26" fill="#2b2620" stroke="var(--gold)" stroke-width="3" stroke-linejoin="round"/>
-      <polygon points="50,16 81,70 19,70" fill="none" stroke="var(--gold)" stroke-width="1.6" opacity=".5" stroke-linejoin="round"/>
-      <g stroke="var(--gold)" stroke-width="1.2" opacity=".3">
-        <line x1="50" y1="3" x2="50" y2="16"/><line x1="9" y1="26" x2="19" y2="70"/><line x1="91" y1="26" x2="81" y2="70"/>
-        <line x1="9" y1="74" x2="19" y2="70"/><line x1="91" y1="74" x2="81" y2="70"/><line x1="50" y1="97" x2="50" y2="70"/>
-      </g>
-    </svg>
-    <div id="diceNum"></div>
+  <div id="diceStage">
+    <div id="dieWrap">
+      <div class="crystal"><div class="flare"></div></div>
+      <svg class="facets" viewBox="0 0 100 100" aria-hidden="true">
+        <polygon points="50,2 92,26 92,74 50,98 8,74 8,26" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.2" stroke-linejoin="round"/>
+        <polygon points="50,15 81,69 19,69" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.4" stroke-linejoin="round"/>
+        <g stroke="rgba(255,255,255,.28)" stroke-width="1.1">
+          <line x1="50" y1="2" x2="50" y2="15"/><line x1="8" y1="26" x2="19" y2="69"/><line x1="92" y1="26" x2="81" y2="69"/>
+          <line x1="8" y1="74" x2="19" y2="69"/><line x1="92" y1="74" x2="81" y2="69"/><line x1="50" y1="98" x2="50" y2="69"/>
+        </g>
+        <polygon points="50,2 92,26 70,38 50,15" fill="rgba(255,255,255,.22)"/>
+      </svg>
+      <div id="diceNum"></div>
+    </div>
+    <div id="modChip"></div>
   </div>
   <div id="diceBadge"></div>
   <div id="diceLabel"></div>
   <div id="diceDetail"></div>
   <div id="diceHint">tap anywhere to close</div>
 </div>
+<div id="lightbox" onclick="this.classList.remove('show')"><img id="lightboxImg" alt="Edgar Plimley"></div>
 <div id="overlay" onclick="closeSheet()"></div>
 <div id="sheet"></div>
 <div id="toast"></div>
@@ -479,27 +513,43 @@ function infoBtn(term){ return `<button class="info" onclick="event.stopPropagat
 const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 /* =================== DICE OVERLAY =================== */
-let diceCycle=null, diceHide=null;
+let diceCycle=null, diceTimers=[];
 const reducedMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-function showRoll({sides=20, final, label='', detail='', crit=false, fumble=false}){
-  clearInterval(diceCycle); clearTimeout(diceHide);
+function showEgg(src){ $('lightboxImg').src=src; $('lightbox').classList.add('show'); }
+function showRoll({sides=20, die=null, mod=0, final, label='', detail='', crit=false, fumble=false}){
+  hideRoll();
   const ov=$('diceOverlay');
   ov.className='show rolling';
   $('diceLabel').innerHTML=label;
   $('diceDetail').innerHTML='';
   $('diceBadge').textContent=crit?'✨ CRITICAL! ✨':fumble?'natural 1...':'';
-  const dur = reducedMotion ? 0 : 950;
-  if(dur) diceCycle=setInterval(()=>{ $('diceNum').textContent=1+Math.floor(Math.random()*sides); },70);
-  setTimeout(()=>{
-    clearInterval(diceCycle);
-    $('diceNum').textContent=final;
+  $('modChip').textContent = mod ? (mod>0?`+${mod}`:`${mod}`) : '';
+  const raw = (die==null) ? final : die;
+  const later = (fn,ms)=>diceTimers.push(setTimeout(fn,ms));
+  const finish = ()=>{
+    ov.className='show '+(crit?'crit':fumble?'fumble':'total');
     $('diceDetail').innerHTML=detail;
-    ov.className='show '+(crit?'crit':fumble?'fumble':'settled');
-    try{ navigator.vibrate && navigator.vibrate(crit?[40,60,80]:fumble?[80]:35); }catch(e){}
-    diceHide=setTimeout(hideRoll, 3600);
-  }, dur);
+    try{ navigator.vibrate && navigator.vibrate(crit?[40,60,90]:fumble?[80]:35); }catch(e){}
+    diceTimers.push(setTimeout(hideRoll, 4000));
+  };
+  if(reducedMotion){ $('diceNum').textContent=final; finish(); return; }
+  diceCycle=setInterval(()=>{ $('diceNum').textContent=1+Math.floor(Math.random()*sides); },70);
+  later(()=>{
+    clearInterval(diceCycle);
+    $('diceNum').textContent=raw;            // act 1: the naked die result
+    if(mod && raw!==final){
+      ov.className='show settled';
+      try{ navigator.vibrate && navigator.vibrate(22); }catch(e){}
+      later(()=>{ ov.className='show modphase'; }, 700);          // act 2: modifier flies in
+      later(()=>{ $('diceNum').textContent=final; finish(); }, 1250); // act 3: the total
+    } else { $('diceNum').textContent=final; finish(); }
+  }, 1080);
 }
-function hideRoll(){ clearInterval(diceCycle); clearTimeout(diceHide); $('diceOverlay').className=''; }
+function hideRoll(){
+  clearInterval(diceCycle);
+  diceTimers.forEach(clearTimeout); diceTimers=[];
+  $('diceOverlay').className='';
+}
 
 /* =================== SHEET / MODAL =================== */
 function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
@@ -553,7 +603,7 @@ function spendHitDie(){
   if(S.hitDice<=0){ toast('No Hit Dice left — Long Rest gives back 2.'); return; }
   const r=roll(6); S.hitDice--; S.hp=Math.min(MAX.hp,S.hp+r+3);
   save(); renderAll();
-  showRoll({sides:6, final:r+3, label:'Hit Die — healing',
+  showRoll({sides:6, die:r, mod:3, final:r+3, label:'Hit Die — healing',
     detail:`d6: ${r} +3 CON = <b>healed ${r+3} HP</b> (${S.hitDice}/4 dice left)`});
 }
 function togglePip(key,i){
@@ -587,7 +637,7 @@ function rollAttack(id){
   const adv = S.innateActive && sp.src==='Sorcerer';
   const d=roll(20), d2=adv?roll(20):null;
   const kept=adv?Math.max(d,d2):d;
-  showRoll({sides:20, final:kept+5, crit:kept===20, fumble:kept===1,
+  showRoll({sides:20, die:kept, mod:5, final:kept+5, crit:kept===20, fumble:kept===1,
     label:`${sp.n} — attack roll`,
     detail:(adv?`Advantage (Innate Sorcery): ${d} & ${d2} → keep ${kept}`:`d20: ${kept}`)+` +5 = <b>${kept+5}</b> vs the target's AC`
       +(kept===20?'<br>Automatic hit — roll damage TWICE (all the dice)!':kept===1?'<br>Automatic miss. The magic sneezes.':'')});
@@ -605,7 +655,7 @@ function rollDamage(id,expr){
 }
 function rollSkill(name,bonus){
   const d=roll(20);
-  showRoll({sides:20, final:d+bonus, crit:d===20, fumble:d===1,
+  showRoll({sides:20, die:d, mod:bonus, final:d+bonus, crit:d===20, fumble:d===1,
     label:name,
     detail:`d20: ${d} ${fmt(bonus)} = <b>${d+bonus}</b>`});
 }
