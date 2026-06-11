@@ -278,12 +278,32 @@ nav button.on{color:var(--gold)}
 <script>
 /* =================== STATE =================== */
 const MAX = {hp:30, slots1:4, slots2:3, sp:4, innate:2, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
+const SEED_V = 2;
+const SEEDS = [
+  {id:'cauldron',name:'Cooking Cauldron',type:'gear',qty:1,note:"Edgar's pride and laboratory"},
+  {id:'backpack',name:'Backpack',type:'gear',qty:1,note:''},
+  {id:'caltrops',name:'Caltrops (bag)',type:'gear',qty:1,note:'scatter on the ground to slow pursuers'},
+  {id:'crowbar',name:'Crowbar',type:'gear',qty:1,note:'advantage on STR checks where leverage helps'},
+  {id:'tinderbox',name:'Tinderbox',type:'gear',qty:1,note:''},
+  {id:'torch',name:'Torches',type:'consumable',qty:2,note:'1 hour of light each'},
+  {id:'rations',name:'Rations (days)',type:'consumable',qty:10,note:'Edgar has strong opinions about these'},
+];
 const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, innate:2, innateActive:false, tides:1,
   familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false,
-  pixieDust:3, herb:3, items:[{id:'rope',name:'Rope (50 ft)',type:'gear',qty:1,note:''}]};
+  pixieDust:3, herb:3, gold:28, seedV:SEED_V,
+  items:[{id:'rope',name:'Rope (50 ft)',type:'gear',qty:1,note:''}, ...SEEDS]};
 const freshDefault = () => JSON.parse(JSON.stringify(DEFAULT));
+function hydrate(s){
+  const st = Object.assign(freshDefault(), s);
+  st.seedV = s.seedV || 1;
+  if(st.seedV < SEED_V){
+    SEEDS.forEach(x=>{ if(!st.items.some(i=>i.id===x.id)) st.items.push(JSON.parse(JSON.stringify(x))); });
+    st.seedV = SEED_V;
+  }
+  return st;
+}
 let S = load();
-function load(){ try{ const s = JSON.parse(localStorage.getItem('edgarState')); return s ? Object.assign(freshDefault(),s) : freshDefault(); }catch(e){ return freshDefault(); } }
+function load(){ try{ const s = JSON.parse(localStorage.getItem('edgarState')); return s ? hydrate(s) : freshDefault(); }catch(e){ return freshDefault(); } }
 function save(){ localStorage.setItem('edgarState', JSON.stringify(S)); }
 function set(patch){ Object.assign(S, patch); save(); renderAll(); }
 
@@ -307,6 +327,8 @@ const TERMS = {
   darkvision:{t:"Darkvision 120 ft",b:"Edgar sees in total darkness up to 120 ft as if it were dim light (in shades of grey — no color). That's double what most races get. Perfect for finding collectible rocks in caves."},
   ac:{t:"Armor Class (AC)",b:"How hard you are to hit. Enemies hit you if their attack roll ≥ your AC.\n\nEdgar wears no armor: base AC 11 (10 + DEX). With Mage Armor active it becomes 14 (13 + DEX). CAST MAGE ARMOR EVERY MORNING. Edgar calls it his 'invisible apron'."},
   relentless:{t:"Relentless Endurance",b:"Once per Long Rest, when damage would drop you to 0 HP (but not kill you outright), you drop to 1 HP instead and keep fighting. Orcs are built different.\n\nThe app reminds you when your HP hits 0 — tell your DM before falling unconscious!"},
+  devilweed:{t:"Devilweed — full rules",b:"Consume: 1 Action. Lasts 10 minutes.\n\nWhile it lasts:\n• ADVANTAGE on Insight, Persuasion and Animal Handling checks, and on Wisdom saving throws\n• DISADVANTAGE on Acrobatics checks and Dexterity saving throws, and your Speed drops by 10 ft\n\n⚠️ More than one dose per day: CON save DC 15 (Edgar's CON save: +5). On a fail, roll 1d4 for a side effect:\n1 — Drowsy: disadvantage on Perception checks\n2 — Paranoia: advantage on Perception, disadvantage on Insight\n3 — Munchies: you start eating disturbing amounts of rations\n4 — The Giggles: auto-fail against Tasha's Hideous Laughter, disadvantage on Deception checks\n\n💡 Edgar's use case: smoke BEFORE the big negotiation — advantage on Persuasion stacks beautifully with his +5, and it patches his terrible WIS saves for 10 minutes. Never before a fight: slow and clumsy is how sorcerers get eaten."},
+  pixiedust:{t:"Pixie Dust — full rules",b:"Consume: 1 Action. Lasts 1 minute.\n\nWhile it lasts:\n• +10 ft movement speed\n• ADVANTAGE on Dexterity and Strength saving throws, and on initiative rolls\n• DISADVANTAGE on Wisdom and Intelligence saving throws\n• You cannot sleep, and magical sleep has no effect on you\n\n⚠️ ADDICTION: taking another dose within 12 hours of the last one triggers a CON save (DC 15); a critical fail means instant overdose.\nStage 1: −1 INT and WIS — lasts 1 day\nStage 2: −1 to ALL stats; can't sleep unless utterly exhausted or magically forced — lasts 1 day\nStage 3 — OVERDOSE: after 1 minute you suffer a heart attack and fall prone. You can't get up on your own — only healing magic, a potion, or a successful Medicine check saves you.\n\n💡 Edgar's use case: an emergency 'go fast' button when initiative is about to be rolled. But WIS-save disadvantage on a WIS 8 orc is begging to be charmed — and NEVER two doses in one day. (His party should hide the second pack.)"},
 };
 
 /* =================== SPELLS =================== */
@@ -546,7 +568,7 @@ function importState(){
   try{
     const s = JSON.parse(atob(code.trim()));
     if(typeof s.hp !== 'number') throw new Error('bad');
-    S = Object.assign(freshDefault(),s); save(); renderAll();
+    S = hydrate(s); save(); renderAll();
     toast('📥 Backup restored!');
   }catch(e){ toast('❌ That code doesn\'t look right — make sure you pasted the whole thing.'); }
 }
@@ -582,6 +604,13 @@ function saveNewItem(){
   S.items.push({id:'i'+Date.now().toString(36), name, type:newItemType, qty, note:$('itNote').value.trim()});
   save(); renderAll(); closeSheet();
   toast(`${newItemType==='gear'?'🎒':'🧪'} <b>${esc(name)}</b> added to your inventory (×${qty}).`);
+}
+function setGold(){
+  const v = prompt('How much gold do you have? (gp)', S.gold);
+  if(v===null) return;
+  const n = parseInt(v,10);
+  if(isNaN(n)||n<0){ toast('That doesn\'t look like a number of coins.'); return; }
+  S.gold=n; save(); renderAll(); toast(`💰 Gold set to <b>${n} gp</b>.`);
 }
 function useCustom(id){
   const it=S.items.find(x=>x.id===id); if(!it||it.qty<=0) return;
@@ -817,16 +846,16 @@ function renderStats(){
   <div class="card">
     <h2>Consumables</h2>
     <div style="margin-bottom:12px">
-      <b class="hand" style="font-size:1.1rem">✨ Pixie Dust</b>
-      <div class="desc" style="margin-top:4px">3 packs from a friend. Effect unknown — ask the DM before sprinkling. Edgar's hypothesis: "concentrated whimsy, possibly seasoning."</div>
+      <b class="hand" style="font-size:1.1rem">✨ Pixie Dust ${infoBtn('pixiedust')}</b>
+      <div class="desc" style="margin-top:4px">1 Action · lasts 1 minute: +10 ft speed, advantage on DEX & STR saves and initiative; disadvantage on WIS & INT saves; sleep impossible. ⚠️ Second dose within 12 hours risks addiction (CON DC 15) — tap ⓘ for the full rules.</div>
       <div class="castrow">
         <button class="castbtn alt" onclick="useItem('pixieDust','Pixie Dust')" ${S.pixieDust<=0?'disabled':''}>Use 1 — ${S.pixieDust} left</button>
         <button class="castbtn roll" onclick="addItem('pixieDust','Pixie Dust')">+1</button>
       </div>
     </div>
     <div>
-      <b class="hand" style="font-size:1.1rem">🌿 Devilweed</b>
-      <div class="desc" style="margin-top:4px">3 packs of dried wyssin leaves rolled like tobacco, from a friend. Exact effects per your DM. Fun lore: on orcs, smoking-herbs work as little more than a mild painkiller — Edgar mostly rates them on flavor, like a very serious food critic.</div>
+      <b class="hand" style="font-size:1.1rem">🌿 Devilweed ${infoBtn('devilweed')}</b>
+      <div class="desc" style="margin-top:4px">1 Action · lasts 10 minutes: advantage on Insight, Persuasion, Animal Handling & WIS saves; −10 ft speed, disadvantage on Acrobatics & DEX saves. ⚠️ More than one dose a day risks side effects (CON DC 15, then 1d4) — tap ⓘ for the full rules.</div>
       <div class="castrow">
         <button class="castbtn alt" onclick="useItem('herb','Devilweed')" ${S.herb<=0?'disabled':''}>Use 1 — ${S.herb} left</button>
         <button class="castbtn roll" onclick="addItem('herb','Devilweed')">+1</button>
@@ -835,6 +864,10 @@ function renderStats(){
   </div>
   <div class="card">
     <h2>My Inventory</h2>
+    <div class="invrow">
+      <span class="iname"><b>💰 Gold</b><div class="muted">tap the amount to set it</div></span>
+      <button class="chip warn" onclick="setGold()">${S.gold} gp</button>
+    </div>
     ${S.items.length ? S.items.map(it=>`
       <div class="invrow">
         <span class="iname"><b>${esc(it.name)}</b>${it.note?`<div class="muted">${esc(it.note)}</div>`:''}</span>
@@ -850,7 +883,7 @@ function renderStats(){
     <div class="castrow" style="margin-top:12px">
       <button class="castbtn alt" onclick="openAddItem()">＋ Add item</button>
     </div>
-    <div class="doodle">Gear keeps a count · consumables get a Use button. Everything is saved automatically.</div>
+    <div class="doodle">Starter kit seeded from the standard Dungeoneer's Pack + the cauldron — delete anything you don't actually have, and tap the gold to set your real amount (28 gp is the standard sorcerer start).</div>
   </div>
   <div class="card">
     <h2>Proficiencies & Languages</h2>
