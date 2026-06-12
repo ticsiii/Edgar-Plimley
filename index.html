@@ -599,6 +599,7 @@ const buzz = p => { try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} 
 function clearDiceTimers(){ clearInterval(diceCycle); diceTimers.forEach(clearTimeout); diceTimers=[]; }
 function hideRoll(){
   rollSeq++; clearDiceTimers();
+  buzz(0);
   $('diceOverlay').className='';
   $('dice-canvas').style.visibility='hidden'; $('dice-canvas').style.pointerEvents='none';
   if(diceBox){ try{ diceBox.clear(); }catch(e){} }
@@ -635,10 +636,9 @@ async function getDice(notation, sides, label){
   if(seq!==rollSeq) return null;
   if(box){
     $('dice-canvas').style.visibility='visible'; $('dice-canvas').style.pointerEvents='';
-    // Rolling haptics: fast taps that decelerate like a tumbling die
-    [[0,8],[120,8],[240,8],[380,8],[530,8],[700,10],[900,10],[1130,12],[1400,12],[1720,15],[2100,15],[2560,18],[3100,20]].forEach(([t,d])=>{
-      diceTimers.push(setTimeout(()=>buzz(d),t));
-    });
+    // Rolling haptics: single pattern handed to OS — vibrate,pause,vibrate,pause...
+    // pulses shorten and gaps widen to mimic a die losing momentum
+    buzz([45,90,40,115,35,145,35,180,35,225,40,290,45,390,55]);
     try{
       const res=await Promise.race([ box.roll(notation),
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('settle timeout')),9000)) ]);
