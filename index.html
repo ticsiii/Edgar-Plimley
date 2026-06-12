@@ -1130,6 +1130,41 @@ function renderAbil(){
 function renderStats(){
   $('tab-stats').innerHTML=`
   <div class="card">
+    <h2>At a Glance</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px">
+      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+        <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">SPELL DC</div>
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2;color:var(--purple)">13</div>
+        <div style="font-size:.7rem;color:var(--dim)">8+prof+CHA</div>
+      </div>
+      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+        <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">SPELL ATK</div>
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2;color:var(--blue)">+5</div>
+        <div style="font-size:.7rem;color:var(--dim)">prof+CHA</div>
+      </div>
+      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+        <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">PROFICIENCY</div>
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">+2</div>
+        <div style="font-size:.7rem;color:var(--dim)">level 4</div>
+      </div>
+      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+        <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">INITIATIVE</div>
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">+1</div>
+        <div style="font-size:.7rem;color:var(--dim)">DEX mod</div>
+      </div>
+      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+        <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">SPEED</div>
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">30</div>
+        <div style="font-size:.7rem;color:var(--dim)">ft / turn</div>
+      </div>
+      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+        <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">PASSIVE PERC</div>
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">9</div>
+        <div style="font-size:.7rem;color:var(--dim)">10+WIS−1</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
     <h2>Ability Scores <span class="grow"></span>${infoBtn('proficiency')}</h2>
     <div class="abilgrid">${ABS.map(a=>`
       <button class="abox" onclick="rollSkill('${a.n} check',${a.m})">
@@ -1154,7 +1189,7 @@ function renderStats(){
       <tr><td>Spear</td><td>+3</td><td>1d6+1 (1d8+1 2-handed)</td><td>20/60 ft thrown</td></tr>
       <tr><td>Unarmed</td><td>+3</td><td>2</td><td>5 ft</td></tr>
     </table>
-    <div class="doodle">Or cast True Strike to attack with +5 instead — magic beats muscles.</div>
+    <div class="doodle">Or cast Ray of Frost (+5 to hit, 1d8 cold) — magic beats muscles and slows them down too.</div>
   </div>
   <div class="card">
     <h2>Magic Items</h2>
