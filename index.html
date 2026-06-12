@@ -491,6 +491,55 @@ const SPELLS = [
  tip:"Escape grapples, cross chasms, hop through barred windows, skip the lava. Your panic button — try to keep one 2nd-level slot for it."},
 ];
 
+/* =================== FAMILIARS =================== */
+const FAMILIARS = [
+  {n:'Owl',icon:'🦉',mine:true,
+   s:'Flyby: Help action without provoking opportunity attacks. Darkvision 120 ft. Fly 60 ft.',
+   w:'Can\'t attack. 1 HP — drops to 0 in one hit.'},
+  {n:'Bat',icon:'🦇',
+   s:'Blindsight 60 ft — sees perfectly in magical or total darkness. Fly 30 ft.',
+   w:'2 HP. Weak fly speed. Fragile in any encounter.'},
+  {n:'Cat',icon:'🐱',
+   s:'Climb speed 20 ft. Keen smell & hearing (advantage on Perception). Stealth +4.',
+   w:'2 HP. No flight. No darkvision.'},
+  {n:'Crab',icon:'🦀',
+   s:'Amphibious. Blindsight 10 ft (useful in total darkness at close range). Hard to grapple.',
+   w:'Speed only 20 ft. 2 HP. No meaningful special actions.'},
+  {n:'Frog',icon:'🐸',
+   s:'Amphibious. Darkvision 30 ft. Leap 10 ft. Very inconspicuous.',
+   w:'1 HP. Speed 20 ft. No combat utility.'},
+  {n:'Hawk',icon:'🦅',
+   s:'Keen Sight: advantage on Perception. Fly 60 ft — fastest scout available.',
+   w:'No darkvision. 1 HP. Fragile in any fight.'},
+  {n:'Lizard',icon:'🦎',
+   s:'Climb speed 20 ft. Darkvision 30 ft. Blends in anywhere.',
+   w:'2 HP. No fly speed. No combat abilities.'},
+  {n:'Octopus',icon:'🐙',
+   s:'Swim 30 ft. Darkvision 30 ft. Ink cloud (enemies in water get disadvantage to hit it). Camouflage in water.',
+   w:'Land speed only 5 ft. 3 HP. Nearly useless outside water.'},
+  {n:'Poisonous Snake',icon:'🐍',
+   s:'Swim 30 ft. Darkvision 10 ft. Bite: delivers touch-range spells AND poisons the target.',
+   w:'2 HP. No flight. Poison save DC only 10.'},
+  {n:'Quipper',icon:'🐟',
+   s:'Swim 40 ft — fastest swimmer. Blood Frenzy: advantage on attacks against creatures missing HP.',
+   w:'Water only — useless on land. 1 HP. Dies instantly.'},
+  {n:'Rat',icon:'🐀',
+   s:'Keen smell (advantage on Perception). Darkvision 30 ft. Easy to hide anywhere.',
+   w:'1 HP. Speed 20 ft. No combat utility.'},
+  {n:'Raven',icon:'🪶',
+   s:'Mimicry: imitates heard voices and sounds. Fly 50 ft. Can scout AND relay messages.',
+   w:'2 HP. No special senses. No combat role.'},
+  {n:'Sea Horse',icon:'🌊',
+   s:'Swim 20 ft. Underwater camouflage.',
+   w:'Can\'t breathe air — useless on land. 1 HP.'},
+  {n:'Spider',icon:'🕷️',
+   s:'Climb speed 20 ft. Spider Climb (walls & ceilings). Web sense (detects vibrations in webs).',
+   w:'2 HP. Speed 20 ft. Web sense only works on actual webs.'},
+  {n:'Weasel',icon:'🐾',
+   s:'Keen hearing & smell (advantage on Perception). Speed 30 ft. Tiny profile for surveillance.',
+   w:'1 HP. No flight or climb. Extremely fragile.'},
+];
+
 /* =================== ABILITIES =================== */
 const ABILITIES = [
 {id:'tides',n:'Tides of Chaos',uses:'tides',per:'Long Rest*',action:'Free — when you roll',
@@ -654,6 +703,18 @@ function showRollCss({sides=20, die=null, mod=0, final, label='', detail='', cri
 /* =================== SHEET / MODAL =================== */
 function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
 function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
+function showFamiliarList(){
+  openSheet(`<h3>🦉 Familiar Options</h3>
+  <div style="color:var(--dim);font-size:.8rem;margin-bottom:12px">Edgar's current: <b style="color:var(--gold)">Owl ★</b>. Switching requires recasting (1 hour, 10 gp).</div>
+  <div style="white-space:normal">
+    ${FAMILIARS.map(f=>`<div style="border-bottom:1px dashed var(--line);padding:9px 0${f.mine?';background:linear-gradient(90deg,rgba(217,164,65,.07),transparent);border-radius:8px;padding:9px 8px':''}">
+      <div style="font-family:'Patrick Hand',cursive;font-size:1.08rem;color:${f.mine?'var(--gold)':'var(--ink)'}">${f.icon} ${f.n}${f.mine?' ★':''}</div>
+      <div style="font-size:.8rem;margin-top:3px;color:var(--dim)"><span style="color:var(--green)">✦</span> ${f.s}</div>
+      <div style="font-size:.8rem;margin-top:2px;color:var(--dim)"><span style="color:var(--red)">✦</span> ${f.w}</div>
+    </div>`).join('')}
+  </div>
+  <div class="actions"><button class="castbtn alt" onclick="closeSheet()">Close</button></div>`);
+}
 function showTerm(key){ const t=TERMS[key]; if(!t) return;
   openSheet(`<h3>${t.t}</h3><div class="body">${t.b}</div>
   <div class="actions"><button class="castbtn alt" onclick="closeSheet()">Got it!</button></div>`);
@@ -1017,6 +1078,7 @@ function renderSpells(){
         <div class="tip">💡 ${sp.tip}</div>
         <div class="castrow">${buttons}</div>
         ${rolls?`<div class="castrow">${rolls}</div>`:''}
+        ${sp.id==='familiar'?`<div class="castrow" style="margin-top:6px"><button class="castbtn alt" style="border-color:var(--blue);color:var(--blue)" onclick="showFamiliarList()">📋 Familiar list</button></div>`:''}
       </div>
     </div>`;
   }).join('');
