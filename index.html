@@ -635,6 +635,10 @@ async function getDice(notation, sides, label){
   if(seq!==rollSeq) return null;
   if(box){
     $('dice-canvas').style.visibility='visible'; $('dice-canvas').style.pointerEvents='';
+    // Rolling haptics: fast taps that decelerate like a tumbling die
+    [[0,8],[120,8],[240,8],[380,8],[530,8],[700,10],[900,10],[1130,12],[1400,12],[1720,15],[2100,15],[2560,18],[3100,20]].forEach(([t,d])=>{
+      diceTimers.push(setTimeout(()=>buzz(d),t));
+    });
     try{
       const res=await Promise.race([ box.roll(notation),
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('settle timeout')),9000)) ]);
