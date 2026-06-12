@@ -413,7 +413,7 @@ const SEEDS = [
 ];
 const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, tides:1,
   familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false,
-  pixieDust:3, herb:3, gold:28, seedV:SEED_V,
+  pixieDust:3, herb:3, gold:28, silver:0, copper:0, seedV:SEED_V,
   items:[{id:'rope',name:'Rope (50 ft)',type:'gear',qty:1,note:''}, ...SEEDS]};
 const freshDefault = () => JSON.parse(JSON.stringify(DEFAULT));
 function hydrate(s){
@@ -922,16 +922,20 @@ function saveNewItem(){
   save(); renderAll(); closeSheet();
   toast(`${newItemType==='gear'?'🎒':'🧪'} <b>${esc(name)}</b> added to your inventory (×${qty}).`);
 }
-function changeGold(n){
-  S.gold=Math.max(0,Math.min(99999,S.gold+n)); save(); renderAll();
+function changeCoin(key,n){
+  S[key]=Math.max(0,Math.min(99999,(S[key]||0)+n)); save(); renderAll();
 }
-function setGold(){
-  const v = prompt('How much gold do you have? (gp)', S.gold);
+const COIN={gold:{suffix:'gp',label:'Gold'},silver:{suffix:'sp',label:'Silver'},copper:{suffix:'cp',label:'Copper'}};
+function setCoin(key){
+  const c=COIN[key];
+  const v=prompt(`How many ${c.label.toLowerCase()}? (${c.suffix})`,(S[key]||0));
   if(v===null) return;
-  const n = parseInt(v,10);
+  const n=parseInt(v,10);
   if(isNaN(n)||n<0){ toast('That doesn\'t look like a number of coins.'); return; }
-  S.gold=n; save(); renderAll(); toast(`💰 Gold set to <b>${n} gp</b>.`);
+  S[key]=n; save(); renderAll(); toast(`💰 ${c.label} set to <b>${n} ${c.suffix}</b>.`);
 }
+function changeGold(n){ changeCoin('gold',n); }
+function setGold(){ setCoin('gold'); }
 function useCustom(id){
   const it=S.items.find(x=>x.id===id); if(!it||it.qty<=0) return;
   it.qty--; save(); renderAll();
@@ -1222,10 +1226,22 @@ function renderStats(){
   <div class="card">
     <h2>My Inventory</h2>
     <div class="invrow">
-      <span class="iname"><b>💰 Gold</b><div class="muted">tap the amount to type an exact number</div></span>
-      <button class="chip" onclick="changeGold(-1)" ${S.gold<=0?'disabled':''}>−</button>
-      <button class="chip warn" onclick="setGold()">${S.gold} gp</button>
-      <button class="chip" onclick="changeGold(1)">＋</button>
+      <span class="iname"><b>🟡 Gold</b><div class="muted">tap the amount to set an exact number</div></span>
+      <button class="chip" onclick="changeCoin('gold',-1)" ${S.gold<=0?'disabled':''}>−</button>
+      <button class="chip warn" onclick="setCoin('gold')">${S.gold} gp</button>
+      <button class="chip" onclick="changeCoin('gold',1)">＋</button>
+    </div>
+    <div class="invrow">
+      <span class="iname"><b>⚪ Silver</b><div class="muted">10 sp = 1 gp</div></span>
+      <button class="chip" onclick="changeCoin('silver',-1)" ${(S.silver||0)<=0?'disabled':''}>−</button>
+      <button class="chip" style="border-color:#b8c4cc;color:#b8c4cc" onclick="setCoin('silver')">${S.silver||0} sp</button>
+      <button class="chip" onclick="changeCoin('silver',1)">＋</button>
+    </div>
+    <div class="invrow">
+      <span class="iname"><b>🟤 Copper</b><div class="muted">10 cp = 1 sp · 100 cp = 1 gp</div></span>
+      <button class="chip" onclick="changeCoin('copper',-1)" ${(S.copper||0)<=0?'disabled':''}>−</button>
+      <button class="chip" style="border-color:#c07a3a;color:#c07a3a" onclick="setCoin('copper')">${S.copper||0} cp</button>
+      <button class="chip" onclick="changeCoin('copper',1)">＋</button>
     </div>
     ${S.items.length ? S.items.map(it=>`
       <div class="invrow">
