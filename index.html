@@ -217,7 +217,7 @@ nav button.on{color:var(--gold)}
 .invrow .qty{font-family:"Patrick Hand",cursive;font-size:1.15rem;min-width:34px;text-align:center}
 .invrow .del{border-color:var(--red-dk);color:#ff9d9d}
 /* ---------- dice overlay ---------- */
-#dice-canvas{position:fixed;inset:0;z-index:70;display:none;background:rgba(10,8,5,.3)}
+#dice-canvas{position:fixed;inset:0;z-index:70;visibility:hidden;pointer-events:none;background:rgba(10,8,5,.3)}
 #dice-canvas canvas{width:100%;height:100%;filter:brightness(1.35) saturate(1.18) contrast(1.04)}
 #diceOverlay{
   position:fixed;inset:0;z-index:72;display:none;align-items:center;justify-content:center;
@@ -492,22 +492,23 @@ const SPELLS = [
 ];
 
 /* =================== FAMILIARS =================== */
+let lastFamiliar='Owl';
 const FAMILIARS = [
-  {n:'Owl',icon:'🦉',mine:true,
+  {n:'Owl',icon:'🦉',
    s:'Flyby: Help action without provoking opportunity attacks. Darkvision 120 ft. Fly 60 ft.',
    w:'Can\'t attack. 1 HP — drops to 0 in one hit.'},
   {n:'Bat',icon:'🦇',
    s:'Blindsight 60 ft — sees perfectly in magical or total darkness. Fly 30 ft.',
-   w:'2 HP. Weak fly speed. Fragile in any encounter.'},
+   w:'1 HP. Drops to 0 in one hit. Weak fly speed.'},
   {n:'Cat',icon:'🐱',
-   s:'Climb speed 20 ft. Keen smell & hearing (advantage on Perception). Stealth +4.',
+   s:'Climb speed 20 ft. Keen Smell (advantage on smell-based Perception). Stealth +4.',
    w:'2 HP. No flight. No darkvision.'},
   {n:'Crab',icon:'🦀',
    s:'Amphibious. Blindsight 10 ft (useful in total darkness at close range). Hard to grapple.',
    w:'Speed only 20 ft. 2 HP. No meaningful special actions.'},
   {n:'Frog',icon:'🐸',
-   s:'Amphibious. Darkvision 30 ft. Leap 10 ft. Very inconspicuous.',
-   w:'1 HP. Speed 20 ft. No combat utility.'},
+   s:'Amphibious. Swim 20 ft. Leap 10 ft. Very inconspicuous — no one suspects the frog.',
+   w:'1 HP. No darkvision or special senses. No combat utility.'},
   {n:'Hawk',icon:'🦅',
    s:'Keen Sight: advantage on Perception. Fly 60 ft — fastest scout available.',
    w:'No darkvision. 1 HP. Fragile in any fight.'},
@@ -515,7 +516,7 @@ const FAMILIARS = [
    s:'Climb speed 20 ft. Darkvision 30 ft. Blends in anywhere.',
    w:'2 HP. No fly speed. No combat abilities.'},
   {n:'Octopus',icon:'🐙',
-   s:'Swim 30 ft. Darkvision 30 ft. Ink cloud (enemies in water get disadvantage to hit it). Camouflage in water.',
+   s:'Swim 30 ft. Darkvision 30 ft. Ink Cloud: heavily obscures 5-ft area (all attacks through it get disadvantage). Camouflage in water.',
    w:'Land speed only 5 ft. 3 HP. Nearly useless outside water.'},
   {n:'Poisonous Snake',icon:'🐍',
    s:'Swim 30 ft. Darkvision 10 ft. Bite: delivers touch-range spells AND poisons the target.',
@@ -599,7 +600,7 @@ function clearDiceTimers(){ clearInterval(diceCycle); diceTimers.forEach(clearTi
 function hideRoll(){
   rollSeq++; clearDiceTimers();
   $('diceOverlay').className='';
-  $('dice-canvas').style.display='none';
+  $('dice-canvas').style.visibility='hidden'; $('dice-canvas').style.pointerEvents='none';
   if(diceBox){ try{ diceBox.clear(); }catch(e){} }
 }
 
@@ -608,18 +609,19 @@ async function ensure3d(){
   if(diceBox) return diceBox;
   if(diceBoxFailed || reducedMotion) return null;
   try{
-    $('dice-canvas').style.display='block';
+    $('dice-canvas').style.visibility='visible'; $('dice-canvas').style.pointerEvents='';
     const mod = await import('./dice/dice-box.es.min.js');
     const box = new mod.default('#dice-canvas', {
       assetPath:'/dice/assets/',
       theme:'dichroic', themeColor:'#eef1f8',
       scale:7, gravity:1.4, mass:1, friction:.8, restitution:.55,
       angularDamping:.4, linearDamping:.5, spinForce:6, throwForce:6,
-      settleTimeout:5000, shadowTransparency:.85, lightIntensity:1.7
+      settleTimeout:5000, shadowTransparency:.85, lightIntensity:1.7,
+      w: window.innerWidth, h: window.innerHeight
     });
     await box.init();
     diceBox=box; return box;
-  }catch(e){ diceBoxFailed=true; $('dice-canvas').style.display='none'; return null; }
+  }catch(e){ diceBoxFailed=true; $('dice-canvas').style.visibility='hidden'; $('dice-canvas').style.pointerEvents='none'; return null; }
 }
 /* Roll dice. Returns {values:[...], is3d, seq} or null if the user dismissed mid-roll. */
 async function getDice(notation, sides, label){
@@ -632,13 +634,13 @@ async function getDice(notation, sides, label){
   const box=await ensure3d();
   if(seq!==rollSeq) return null;
   if(box){
-    $('dice-canvas').style.display='block';
+    $('dice-canvas').style.visibility='visible'; $('dice-canvas').style.pointerEvents='';
     try{
       const res=await Promise.race([ box.roll(notation),
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('settle timeout')),9000)) ]);
       if(seq!==rollSeq) return null;
       return {values:res.map(d=>d.value), is3d:true, seq};
-    }catch(e){ if(seq!==rollSeq) return null; $('dice-canvas').style.display='none'; }
+    }catch(e){ if(seq!==rollSeq) return null; $('dice-canvas').style.visibility='hidden'; $('dice-canvas').style.pointerEvents='none'; }
   }
   const cnt=+notation.split('d')[0];
   return {values:Array.from({length:cnt},()=>roll(sides)), is3d:false, seq};
@@ -705,6 +707,7 @@ function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.ad
 function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
 function rollFamiliar(){
   const pick = FAMILIARS[Math.floor(Math.random()*FAMILIARS.length)];
+  lastFamiliar = pick.n;
   showFamiliarList(pick.n);
 }
 function showFamiliarList(rolled){
@@ -723,7 +726,7 @@ function showFamiliarList(rolled){
   <div style="color:var(--dim);font-size:.76rem;margin-bottom:8px">All 15 official options (any could show up):</div>
   <div style="white-space:normal">
     ${FAMILIARS.map(f=>{
-      const isCurrent=f.mine, isRolled=rolled&&f.n===rolled;
+      const isCurrent=!rolled&&f.n===lastFamiliar, isRolled=rolled&&f.n===rolled;
       return `<div style="border-bottom:1px dashed var(--line);padding:7px 0${isCurrent||isRolled?';background:linear-gradient(90deg,rgba(217,164,65,.07),transparent);border-radius:8px;padding:7px 8px':''}">
         <div style="font-family:'Patrick Hand',cursive;font-size:1.05rem;color:${isCurrent?'var(--gold)':isRolled?'var(--purple)':'var(--ink)'}">${f.icon} ${f.n}${isCurrent?' (last cast)':''}</div>
         <div style="font-size:.78rem;margin-top:2px;color:var(--dim)"><span style="color:var(--green)">✦</span> ${f.s}</div>
