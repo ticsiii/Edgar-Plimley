@@ -478,8 +478,8 @@ const SPELLS = [
  d:"For up to 10 minutes (concentration) you SENSE the presence of magic within 30 ft. As a Magic action, you can see a faint aura around any visible magical creature or object, and learn its school of magic.\n\nBlocked by 1 ft of stone, 1 inch of metal, a thin sheet of lead, or 3 ft of wood/dirt.",
  tip:"Almost always RITUAL-cast this (10 extra minutes, zero slots). Before touching/licking the glowing thing: detect first. This is Edgar's 'science'."},
 {id:'familiar',n:'Find Familiar',lv:1,src:'Magic Initiate (Wizard)',time:'1 hour',rng:'10 ft',comp:'V/S/M (10 gp)',dur:'Until dismissed',free:'familiar',
- d:"Summon a familiar spirit in animal form — Edgar's is an OWL. It acts on your initiative, can't attack, but can take other actions — most importantly HELP: it flutters at an enemy and gives the next ally attacking that enemy advantage.\n\nYou can communicate with it telepathically within 100 ft, and as a Magic action see through its eyes. It can deliver your touch-range spells. If it drops to 0 HP it vanishes; recast the spell to bring it back.\n\n💰 Material cost: burning incense worth 10+ gp, CONSUMED by the spell — every casting costs you 10 gold (even the free Magic Initiate cast). Takes 1 hour — do it in camp, not combat.",
- tip:"The owl has Flyby: it can swoop in, Help (advantage for an ally!), and fly away without provoking attacks. Best wingman. Each summon burns 10 gp of incense, so keep the owl alive — it sticks around indefinitely. Edgar feeds it experimental snacks."},
+ d:"Summon a familiar spirit in animal form. The rules say it's one of fifteen specific animals. Edgar wanted a dragon. He would have settled for a bear. An owl showed up.\n\nWhatever comes out: it acts on your initiative, can't attack, but can take other actions — most importantly HELP: it bothers an enemy and gives the next ally attacking that enemy advantage.\n\nYou can communicate with it telepathically within 100 ft, and as a Magic action see through its eyes. It can deliver your touch-range spells. If it drops to 0 HP it vanishes; recast to bring it back.\n\n💰 Material cost: burning incense worth 10+ gp, CONSUMED — every casting costs 10 gp. Takes 1 hour — do it in camp, not combat.",
+ tip:"Edgar calls the spell 'unpredictable'. The spell calls itself 'working as intended'. Whatever arrives has its uses — see the familiar list for what each one actually does. Each summon burns 10 gp, so keep the thing alive, whatever it is."},
 {id:'magearmor',n:'Mage Armor',lv:1,src:'Sorcerer',time:'1 Action',rng:'Touch',comp:'V/S/M',dur:'8 hours',toggle:'mageArmor',
  d:"Touch a willing creature who isn't wearing armor: its base AC becomes 13 + its DEX modifier for 8 hours. For Edgar that's AC 14 (instead of 11). No concentration needed.",
  tip:"CAST THIS EVERY MORNING. 8 hours covers a whole adventuring day. The cast button below also flips your AC on the Hub."},
@@ -703,15 +703,33 @@ function showRollCss({sides=20, die=null, mod=0, final, label='', detail='', cri
 /* =================== SHEET / MODAL =================== */
 function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
 function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
-function showFamiliarList(){
-  openSheet(`<h3>🦉 Familiar Options</h3>
-  <div style="color:var(--dim);font-size:.8rem;margin-bottom:12px">Edgar's current: <b style="color:var(--gold)">Owl ★</b>. Switching requires recasting (1 hour, 10 gp).</div>
+function rollFamiliar(){
+  const pick = FAMILIARS[Math.floor(Math.random()*FAMILIARS.length)];
+  showFamiliarList(pick.n);
+}
+function showFamiliarList(rolled){
+  const hit = rolled ? FAMILIARS.find(f=>f.n===rolled) : null;
+  openSheet(`<h3>🐉 What comes out?</h3>
+  <div style="color:var(--dim);font-size:.8rem;margin-bottom:10px">Edgar wanted a dragon. The spell has its own opinions.</div>
+  <div class="castrow" style="margin-bottom:12px">
+    <button class="castbtn" style="background:var(--purple);border-color:var(--purple)" onclick="rollFamiliar()">🎲 Cast and see what appears</button>
+  </div>
+  ${hit?`<div style="background:linear-gradient(90deg,rgba(169,138,214,.15),transparent);border:1.5px solid var(--purple);border-radius:12px;padding:10px 12px;margin-bottom:12px">
+    <div style="font-size:.75rem;color:var(--purple);margin-bottom:5px;font-family:'Patrick Hand',cursive">The incense smoke clears... it's a:</div>
+    <div style="font-family:'Patrick Hand',cursive;font-size:1.4rem">${hit.icon} ${hit.n}</div>
+    <div style="font-size:.8rem;margin-top:4px;color:var(--dim)"><span style="color:var(--green)">✦</span> ${hit.s}</div>
+    <div style="font-size:.8rem;margin-top:2px;color:var(--dim)"><span style="color:var(--red)">✦</span> ${hit.w}</div>
+  </div>`:''}
+  <div style="color:var(--dim);font-size:.76rem;margin-bottom:8px">All 15 official options (any could show up):</div>
   <div style="white-space:normal">
-    ${FAMILIARS.map(f=>`<div style="border-bottom:1px dashed var(--line);padding:9px 0${f.mine?';background:linear-gradient(90deg,rgba(217,164,65,.07),transparent);border-radius:8px;padding:9px 8px':''}">
-      <div style="font-family:'Patrick Hand',cursive;font-size:1.08rem;color:${f.mine?'var(--gold)':'var(--ink)'}">${f.icon} ${f.n}${f.mine?' ★':''}</div>
-      <div style="font-size:.8rem;margin-top:3px;color:var(--dim)"><span style="color:var(--green)">✦</span> ${f.s}</div>
-      <div style="font-size:.8rem;margin-top:2px;color:var(--dim)"><span style="color:var(--red)">✦</span> ${f.w}</div>
-    </div>`).join('')}
+    ${FAMILIARS.map(f=>{
+      const isCurrent=f.mine, isRolled=rolled&&f.n===rolled;
+      return `<div style="border-bottom:1px dashed var(--line);padding:7px 0${isCurrent||isRolled?';background:linear-gradient(90deg,rgba(217,164,65,.07),transparent);border-radius:8px;padding:7px 8px':''}">
+        <div style="font-family:'Patrick Hand',cursive;font-size:1.05rem;color:${isCurrent?'var(--gold)':isRolled?'var(--purple)':'var(--ink)'}">${f.icon} ${f.n}${isCurrent?' (last cast)':''}</div>
+        <div style="font-size:.78rem;margin-top:2px;color:var(--dim)"><span style="color:var(--green)">✦</span> ${f.s}</div>
+        <div style="font-size:.78rem;margin-top:1px;color:var(--dim)"><span style="color:var(--red)">✦</span> ${f.w}</div>
+      </div>`;
+    }).join('')}
   </div>
   <div class="actions"><button class="castbtn alt" onclick="closeSheet()">Close</button></div>`);
 }
