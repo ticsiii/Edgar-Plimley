@@ -433,7 +433,7 @@ function set(patch){ Object.assign(S, patch); save(); renderAll(); }
 /* =================== GLOSSARY =================== */
 const TERMS = {
   spellSlots:{t:"Spell Slots",b:"Spell slots are your magical fuel. Casting a 1st- or 2nd-level spell spends one slot of that level (or higher). Cantrips are free — cast them all day.\n\nYou get all slots back on a Long Rest. Tap a glowing pip to spend it, tap an empty one to give it back (misclicks happen)."},
-  sorceryPoints:{t:"Sorcery Points",b:"Your sorcerer-only resource (Edgar thinks it's 'wizard juice'). You have 4, refilled on a Long Rest.\n\nSpend them on Metamagic (Quickened = 2, Twinned = 1) or convert them into extra spell slots with Font of Magic (Bonus Action): a 1st-level slot costs 2 points, a 2nd-level slot costs 3. You can also melt a spell slot into points equal to its level."},
+  sorceryPoints:{t:"Wizarding Points (WP)",b:"Edgar calls these his Wizarding Points. The official name is Sorcery Points, but don't tell him.\n\nYou have 4, refilled on a Long Rest.\n\nSpend them on Metamagic (Quickened = 2 WP, Twinned = 1 WP) or convert them into extra spell slots with Font of Magic (Bonus Action): a 1st-level slot costs 2 WP, a 2nd-level slot costs 3 WP. You can also melt a spell slot into points equal to its level."},
   concentration:{t:"Concentration",b:"Some spells (marked C) stay active only while you concentrate. You can concentrate on ONE spell at a time — casting a second concentration spell ends the first.\n\nIf you take damage while concentrating, make a CON save (DC 10 or half the damage, whichever is higher) or the spell ends. Edgar's CON save is +5, so he's pretty good at this!"},
   ritual:{t:"Ritual",b:"Spells marked R can be cast as a ritual: it takes 10 extra minutes but costs NO spell slot. Great outside combat.\n\nEdgar's Detect Magic is a ritual — when there's no rush, always ritual-cast it for free."},
   saveDC:{t:"Spell Save DC",b:"When your spell forces enemies to make a saving throw (like Thunderwave), they roll a d20 + their save bonus against your Spell Save DC of 13. Roll under 13 = they fail and eat the full effect.\n\nYour DC = 8 + 2 (proficiency) + 3 (Charisma)."},
@@ -558,9 +558,9 @@ const ABILITIES = [
 ];
 const META = [
 {n:'Quickened Spell',cost:2,
- d:"Spend 2 Sorcery Points when casting a spell with a casting time of 1 Action: it becomes a BONUS ACTION for this casting.\n\n⚠️ You can't cast a leveled spell with your Action on the same turn — but a cantrip is fine. Classic combo: Quickened Chromatic Orb + Fire Bolt in one turn."},
+ d:"Spend 2 Wizarding Points when casting a spell with a casting time of 1 Action: it becomes a BONUS ACTION for this casting.\n\n⚠️ You can't cast a leveled spell with your Action on the same turn — but a cantrip is fine. Classic combo: Quickened Chromatic Orb + Fire Bolt in one turn."},
 {n:'Twinned Spell',cost:1,
- d:"Spend 1 Sorcery Point when casting a spell that can target an additional creature at a higher level: its effective level rises by 1 WITHOUT spending a higher slot.\n\nOf Edgar's current spells this is niche — it shines once he learns spells like Hold Person."},
+ d:"Spend 1 Wizarding Point when casting a spell that can target an additional creature at a higher level: its effective level rises by 1 WITHOUT spending a higher slot.\n\nOf Edgar's current spells this is niche — it shines once he learns spells like Hold Person."},
 ];
 
 /* =================== STATS DATA =================== */
@@ -744,7 +744,7 @@ function confirmRest(kind){
   const long = kind==='long';
   openSheet(`<h3>${long?'🌙 Long Rest':'☕ Short Rest'}</h3>
   <div class="body">${long
-    ? 'A full night’s sleep (8 hours). Restores: HP to 30, ALL spell slots, all 4 Sorcery Points, Tides of Chaos, Find Familiar free cast, Relentless Endurance, Adrenaline Rush, and all 4 Hit Dice. Clears temp HP, Mage Armor and concentration.'
+    ? 'A full night’s sleep (8 hours). Restores: HP to 30, ALL spell slots, all 4 Wizarding Points, Tides of Chaos, Find Familiar free cast, Relentless Endurance, Adrenaline Rush, and all 4 Hit Dice. Clears temp HP, Mage Armor and concentration.'
     : 'A 1-hour breather. Restores Adrenaline Rush (2 uses). You may also spend Hit Dice to heal — use the Spend Hit Die button on the Hub during/after the rest.'}</div>
   <div class="actions">
     <button class="castbtn" onclick="doRest('${kind}')">Take the rest</button>
@@ -796,8 +796,8 @@ function togglePip(key,i){
 }
 function castSpell(id,slotLv){
   const sp=SPELLS.find(s=>s.id===id);
-  if(slotLv===1 && S.slots1<=0){ toast('No 1st-level slots left! (Font of Magic: 2 SP → new slot)'); return; }
-  if(slotLv===2 && S.slots2<=0){ toast('No 2nd-level slots left! (Font of Magic: 3 SP → new slot)'); return; }
+  if(slotLv===1 && S.slots1<=0){ toast('No 1st-level slots left! (Font of Magic: 2 WP → new slot)'); return; }
+  if(slotLv===2 && S.slots2<=0){ toast('No 2nd-level slots left! (Font of Magic: 3 WP → new slot)'); return; }
   if(slotLv===1) S.slots1--;
   if(slotLv===2) S.slots2--;
   let msg=`✨ Cast <b>${sp.n}</b>${slotLv?` (level ${slotLv} slot)`:''}.`;
@@ -844,22 +844,22 @@ async function rollSkill(name,bonus){
     detail:`d20: ${d} ${fmt(bonus)} = <b>${d+bonus}</b>`});
 }
 function spendSP(n,label){
-  if(S.sp<n){ toast(`Not enough Sorcery Points (need ${n}).`); return; }
-  S.sp-=n; save(); renderAll(); toast(`🟣 ${label} — spent ${n} SP.`);
+  if(S.sp<n){ toast(`Not enough Wizarding Points (need ${n} WP).`); return; }
+  S.sp-=n; save(); renderAll(); toast(`🟣 ${label} — spent ${n} WP.`);
 }
 function fontCreate(lv){
   const cost=lv===1?2:3, key='slots'+lv;
-  if(S.sp<cost){ toast(`Need ${cost} SP for a level-${lv} slot.`); return; }
+  if(S.sp<cost){ toast(`Need ${cost} WP for a level-${lv} slot.`); return; }
   if(S[key]>=MAX[key]){ toast(`All level-${lv} slots are already full.`); return; }
   S.sp-=cost; S[key]++; save(); renderAll();
-  toast(`🟣 Font of Magic: created a level-${lv} slot for ${cost} SP (Bonus Action).`);
+  toast(`🟣 Font of Magic: created a level-${lv} slot for ${cost} WP (Bonus Action).`);
 }
 function fontConvert(lv){
   const key='slots'+lv;
   if(S[key]<=0){ toast(`No level-${lv} slots to convert.`); return; }
-  if(S.sp>=MAX.sp){ toast('Sorcery Points already full.'); return; }
+  if(S.sp>=MAX.sp){ toast('Wizarding Points already full.'); return; }
   S[key]--; S.sp=Math.min(MAX.sp,S.sp+lv); save(); renderAll();
-  toast(`🟣 Converted a level-${lv} slot into ${lv} SP (Bonus Action).`);
+  toast(`🟣 Converted a level-${lv} slot into ${lv} WP (Bonus Action).`);
 }
 function useAbility(a){
   if(S[a.uses]<=0){ toast(`${a.n}: no uses left (recharges on ${a.per.replace('*','')}).`); return; }
@@ -1022,13 +1022,13 @@ function renderHub(){
   </div>
 
   <div class="card">
-    <h2>Sorcery Points <span class="grow"></span>${infoBtn('sorceryPoints')}</h2>
+    <h2>Wizarding Points <span class="grow"></span>${infoBtn('sorceryPoints')}</h2>
     <div style="display:flex;align-items:center"><span class="piplabel">Points</span>${pips('sp',4,'sp')}</div>
     <div class="subrow">
-      <button class="chip" onclick="fontCreate(1)">2 SP → 1st slot</button>
-      <button class="chip" onclick="fontCreate(2)">3 SP → 2nd slot</button>
-      <button class="chip" onclick="fontConvert(1)">1st slot → 1 SP</button>
-      <button class="chip" onclick="fontConvert(2)">2nd slot → 2 SP</button>
+      <button class="chip" onclick="fontCreate(1)">2 WP → 1st slot</button>
+      <button class="chip" onclick="fontCreate(2)">3 WP → 2nd slot</button>
+      <button class="chip" onclick="fontConvert(1)">1st slot → 1 WP</button>
+      <button class="chip" onclick="fontConvert(2)">2nd slot → 2 WP</button>
     </div>
     <div class="doodle">Font of Magic — each conversion is a Bonus Action.</div>
   </div>
@@ -1126,9 +1126,9 @@ function renderAbil(){
   + `<div class="card"><h2>Metamagic <span class="grow"></span>${infoBtn('sorceryPoints')}</h2>` +
   META.map(m=>`
     <div style="margin-bottom:12px">
-      <b class="hand" style="font-size:1.1rem">${m.n} — ${m.cost} SP</b>
+      <b class="hand" style="font-size:1.1rem">${m.n} — ${m.cost} WP</b>
       <div class="desc" style="margin-top:4px">${m.d.replace(/\n/g,'<br>')}</div>
-      <button class="spendbtn" onclick="spendSP(${m.cost},'${m.n}')" ${S.sp<m.cost?'disabled':''}>Spend ${m.cost} SP (${S.sp} left)</button>
+      <button class="spendbtn" onclick="spendSP(${m.cost},'${m.n}')" ${S.sp<m.cost?'disabled':''}>Spend ${m.cost} WP (${S.sp} left)</button>
     </div>`).join('') + `</div>
   <div class="card"><h2>Darkvision 120 ft <span class="grow"></span>${infoBtn('darkvision')}</h2>
     <div class="muted">See in total darkness up to 120 ft (greyscale). Always on.</div></div>`;
@@ -1154,11 +1154,11 @@ function renderStats(){
         <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">+2</div>
         <div style="font-size:.7rem;color:var(--dim)">level 4</div>
       </div>
-      <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
+      <button onclick="rollSkill('Initiative',1)" style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
         <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">INITIATIVE</div>
         <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">+1</div>
-        <div style="font-size:.7rem;color:var(--dim)">DEX mod</div>
-      </div>
+        <div style="font-size:.7rem;color:var(--dim)">tap to roll</div>
+      </button>
       <div style="background:var(--card2);border:1.5px solid var(--line);border-radius:13px;text-align:center;padding:10px 4px">
         <div style="font-size:.7rem;color:var(--dim);letter-spacing:1px">SPEED</div>
         <div style="font-family:'Patrick Hand',cursive;font-size:1.7rem;line-height:1.2">30</div>
@@ -1170,6 +1170,7 @@ function renderStats(){
         <div style="font-size:.7rem;color:var(--dim)">10+WIS−1</div>
       </div>
     </div>
+    <div class="doodle">Tap Initiative to roll d20+1 for combat order.</div>
   </div>
   <div class="card">
     <h2>Ability Scores <span class="grow"></span>${infoBtn('proficiency')}</h2>
