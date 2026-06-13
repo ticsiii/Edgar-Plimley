@@ -610,7 +610,6 @@ async function ensure3d(){
   if(diceBox) return diceBox;
   if(diceBoxFailed || reducedMotion) return null;
   try{
-    $('dice-canvas').style.visibility='visible'; $('dice-canvas').style.pointerEvents='';
     const mod = await import('./dice/dice-box.es.min.js');
     const box = new mod.default('#dice-canvas', {
       assetPath:'/dice/assets/',
@@ -622,7 +621,8 @@ async function ensure3d(){
     });
     await box.init();
     diceBox=box; return box;
-  }catch(e){ diceBoxFailed=true; $('dice-canvas').style.visibility='hidden'; $('dice-canvas').style.pointerEvents='none'; return null; }
+  }catch(e){ diceBoxFailed=true; return null; }
+}
 }
 /* Roll dice. Returns {values:[...], is3d, seq} or null if the user dismissed mid-roll. */
 async function getDice(notation, sides, label){
