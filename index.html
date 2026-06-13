@@ -413,7 +413,7 @@ const SEEDS = [
 ];
 const DEFAULT = {hp:30, temp:0, slots1:4, slots2:3, sp:4, tides:1,
   familiar:1, relentless:1, adrenaline:2, hitDice:4, mageArmor:false, conc:null, inspiration:false,
-  pixieDust:3, herb:3, gold:28, silver:0, copper:0, seedV:SEED_V,
+  pixieDust:3, herb:3, diamond:0, gold:28, silver:0, copper:0, seedV:SEED_V,
   items:[{id:'rope',name:'Rope (50 ft)',type:'gear',qty:1,note:''}, ...SEEDS]};
 const freshDefault = () => JSON.parse(JSON.stringify(DEFAULT));
 function hydrate(s){
@@ -933,7 +933,7 @@ function saveNewItem(){
 function changeCoin(key,n){
   S[key]=Math.max(0,Math.min(99999,(S[key]||0)+n)); save(); renderAll();
 }
-const COIN={gold:{suffix:'gp',label:'Gold'},silver:{suffix:'sp',label:'Silver'},copper:{suffix:'cp',label:'Copper'}};
+const COIN={diamond:{suffix:'dia',label:'Diamond'},gold:{suffix:'gp',label:'Gold'},silver:{suffix:'sp',label:'Silver'},copper:{suffix:'cp',label:'Copper'}};
 function setCoin(key){
   const c=COIN[key];
   const v=prompt(`How many ${c.label.toLowerCase()}? (${c.suffix})`,(S[key]||0));
@@ -1238,6 +1238,12 @@ function renderStats(){
   </div>
   <div class="card">
     <h2>My Inventory</h2>
+    <div class="invrow">
+      <span class="iname"><b>💎 Diamond</b><div class="muted">gemstone · used as spell component</div></span>
+      <button class="chip" onclick="changeCoin('diamond',-1)" ${(S.diamond||0)<=0?'disabled':''}>−</button>
+      <button class="chip" style="border-color:#a8d8f0;color:#a8d8f0" onclick="setCoin('diamond')">${S.diamond||0} dia</button>
+      <button class="chip" onclick="changeCoin('diamond',1)">＋</button>
+    </div>
     <div class="invrow">
       <span class="iname"><b>🟡 Gold</b><div class="muted">tap the amount to set an exact number</div></span>
       <button class="chip" onclick="changeCoin('gold',-1)" ${S.gold<=0?'disabled':''}>−</button>
