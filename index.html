@@ -1311,6 +1311,11 @@ function doInstall(){
 }
 
 renderAll();
+// Prewarm dice engine and preload easter-egg images after first paint
+setTimeout(()=>{
+  ensure3d();
+  ['edgar-adventure.jpg','edgar-magic.jpg'].forEach(src=>{ const i=new Image(); i.src=src; });
+}, 800);
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
