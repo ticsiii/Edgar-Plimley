@@ -623,7 +623,6 @@ async function ensure3d(){
     diceBox=box; return box;
   }catch(e){ diceBoxFailed=true; return null; }
 }
-}
 /* Roll dice. Returns {values:[...], is3d, seq} or null if the user dismissed mid-roll. */
 async function getDice(notation, sides, label){
   hideRoll();
