@@ -1217,15 +1217,14 @@ function renderStats(){
   <div class="card">
     <h2>Ability Scores <span class="grow"></span>${infoBtn('proficiency')}</h2>
     <div class="abilgrid">${ABS.map(a=>`
-      <div class="abox" style="padding:8px 6px 6px">
+      <div class="abox" style="padding:8px 6px 6px;cursor:pointer" onclick="rollSkill('${a.n} Check',${a.m})">
         <div class="an">${a.n}</div>
         <div class="am">${fmt(a.m)}</div>
         <div class="as">score ${a.s}</div>
-        <button class="abox-btn" onclick="rollSkill('${a.n} Check',${a.m})">Check ${fmt(a.m)}</button>
-        <button class="abox-btn${a.p?' prof':''}" onclick="rollSkill('${a.n} Save',${a.sv})">Save ${fmt(a.sv)}${a.p?' ●':''}</button>
+        <button class="abox-btn${a.p?' prof':''}" onclick="event.stopPropagation();rollSkill('${a.n} Save',${a.sv})">Save ${fmt(a.sv)}${a.p?' ●':''}</button>
       </div>`).join('')}
     </div>
-    <div class="doodle">Tap Check or Save to roll d20 + that modifier. Gold ● = save proficiency.</div>
+    <div class="doodle">Tap a box to roll that check · tap Save for the saving throw. Gold ● = proficient.</div>
   </div>
   <div class="card">
     <h2>Skills <span class="grow"></span>${infoBtn('passive')}</h2>
