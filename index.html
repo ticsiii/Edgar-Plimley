@@ -714,7 +714,9 @@ function showRollCss({sides=20, die=null, mod=0, final, label='', detail='', cri
 function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.add('show'); $('sheet').classList.add('show'); }
 function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
 function rollFamiliar(){
-  const pick = FAMILIARS[Math.floor(Math.random()*FAMILIARS.length)];
+  let pick;
+  do { pick = FAMILIARS[Math.floor(Math.random()*FAMILIARS.length)]; }
+  while (pick.n === lastFamiliar);
   lastFamiliar = pick.n;
   showFamiliarList(pick.n);
 }
