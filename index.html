@@ -399,6 +399,10 @@ nav button.on{color:var(--gold)}
 <div id="toast"></div>
 
 <script>
+/* Ammo.js (Emscripten WASM inside dice-box) re-seeds Math.random with a fixed value on init,
+   making all subsequent calls deterministic. Override it here and again after box.init(). */
+Math.random = () => { const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]/4294967296; };
+
 /* =================== STATE =================== */
 const MAX = {hp:30, slots1:4, slots2:3, sp:4, tides:1, familiar:1, relentless:1, adrenaline:2, hitDice:4};
 const SEED_V = 2;
@@ -626,6 +630,7 @@ async function ensure3d(){
       w: window.innerWidth, h: window.innerHeight
     });
     await box.init();
+    Math.random = () => { const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]/4294967296; };
     diceBox=box; return box;
   }catch(e){ diceBoxFailed=true; return null; }
 }
