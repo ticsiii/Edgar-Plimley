@@ -1215,12 +1215,13 @@ function renderStats(){
   <div class="card">
     <h2>Ability Scores <span class="grow"></span>${infoBtn('proficiency')}</h2>
     <div class="abilgrid">${ABS.map(a=>`
-      <button class="abox" onclick="rollSkill('${a.n} check',${a.m})">
-        <div class="an">${a.n}</div><div class="am">${fmt(a.m)}</div><div class="as">score ${a.s}</div>
-        <div class="sv ${a.p?'p':''}">save ${fmt(a.sv)}${a.p?' ●':''}</div>
-      </button>`).join('')}
+      <div class="abox" style="padding:6px 4px 4px">
+        <div class="an">${a.n}</div><div class="as" style="margin-bottom:5px">score ${a.s}</div>
+        <button onclick="rollSkill('${a.n} Check',${a.m})" style="display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:7px;padding:4px 2px;margin-bottom:3px;color:var(--ink);font-family:'Patrick Hand',cursive;font-size:.95rem;cursor:pointer">Check ${fmt(a.m)}</button>
+        <button onclick="rollSkill('${a.n} Save',${a.sv})" style="display:block;width:100%;background:var(--card);border:1px solid ${a.p?'var(--gold)':'var(--line)'};border-radius:7px;padding:4px 2px;color:${a.p?'var(--gold)':'var(--dim)'};font-family:'Patrick Hand',cursive;font-size:.95rem;cursor:pointer">Save ${fmt(a.sv)}${a.p?' ●':''}</button>
+      </div>`).join('')}
     </div>
-    <div class="doodle">Tap a box to roll that ability check. ● = save proficiency.</div>
+    <div class="doodle">Tap Check or Save to roll d20 + that modifier. Gold ● = save proficiency.</div>
   </div>
   <div class="card">
     <h2>Skills <span class="grow"></span>${infoBtn('passive')}</h2>
