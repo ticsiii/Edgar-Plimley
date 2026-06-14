@@ -952,6 +952,14 @@ function setCoin(key){
 }
 function changeGold(n){ changeCoin('gold',n); }
 function setGold(){ setCoin('gold'); }
+function changeTemp(n){ S.temp=Math.max(0,S.temp+n); save(); renderAll(); }
+function setTemp(){
+  const v=prompt('Temp HP? (keeps the higher value if you already have some)',S.temp);
+  if(v===null) return;
+  const n=parseInt(v,10);
+  if(isNaN(n)||n<0){ toast('Enter a number.'); return; }
+  S.temp=Math.max(S.temp,n); save(); renderAll(); toast(`🛡️ Temp HP set to <b>${S.temp}</b>.`);
+}
 function useCustom(id){
   const it=S.items.find(x=>x.id===id); if(!it||it.qty<=0) return;
   it.qty--; save(); renderAll();
@@ -1009,11 +1017,19 @@ function renderHub(){
     <div class="hpwrap">
       <button class="hpbtn dmg" onclick="hpChange(-5)">−5</button>
       <button class="hpbtn dmg" onclick="hpChange(-1)">−1</button>
-      <div class="hpnum">${S.hp}<small>/${MAX.hp}</small>${S.temp?`<div class="muted" style="font-size:.8rem">+${S.temp} temp</div>`:''}</div>
+      <div class="hpnum">${S.hp}<small>/${MAX.hp}</small></div>
       <button class="hpbtn heal" onclick="hpChange(1)">+1</button>
       <button class="hpbtn heal" onclick="hpChange(5)">+5</button>
     </div>
     <div class="hpbar"><div style="width:${hpPct}%;background-color:hsl(${Math.round(hpPct*1.2)},62%,46%)"></div></div>
+    <div class="subrow" style="margin-top:6px;align-items:center">
+      <span style="font-size:.8rem;color:var(--dim);white-space:nowrap">🛡️ Temp HP</span>
+      <button class="chip" onclick="changeTemp(-1)" ${S.temp<=0?'disabled':''}>−1</button>
+      <button class="chip${S.temp>0?' warn':''}" onclick="setTemp()" style="${S.temp>0?'':'border-color:var(--line);color:var(--dim)'}">
+        ${S.temp>0?`+${S.temp} temp`:'none'}</button>
+      <button class="chip" onclick="changeTemp(1)">+1</button>
+      ${S.temp>0?`<button class="chip" onclick="S.temp=0;save();renderAll()" style="color:var(--red);border-color:var(--red)">✕ clear</button>`:''}
+    </div>
     <div class="subrow">
       <button class="chip" onclick="spendHitDie()">🎲 Spend Hit Die (${S.hitDice}/4) — heal 1d6+3</button>
       <button class="chip" onclick="showTerm('hitDice')" style="border:none;color:var(--blue)">what's this?</button>
