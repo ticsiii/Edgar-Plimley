@@ -159,11 +159,13 @@ section.tab.active{display:block;animation:fadein .15s ease}
   background:var(--card2);border:1.5px solid var(--line);border-radius:13px;
   text-align:center;padding:9px 4px;
 }
-.abox .an{font-size:.72rem;color:var(--dim);letter-spacing:1px}
-.abox .am{font-family:"Patrick Hand",cursive;font-size:1.7rem;line-height:1.1}
-.abox .as{font-size:.74rem;color:var(--dim)}
+.abox .an{font-family:"Patrick Hand",cursive;font-size:1rem;color:var(--ink);letter-spacing:1.5px}
+.abox .am{font-family:"Patrick Hand",cursive;font-size:1.6rem;line-height:1.1}
+.abox .as{font-size:.68rem;color:var(--dim);margin-bottom:6px}
 .abox .sv{font-size:.74rem;margin-top:2px;color:var(--blue)}
 .abox .sv.p{color:var(--gold);font-weight:700}
+.abox-btn{display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:7px;padding:4px 2px;margin-bottom:3px;color:var(--dim);font-family:"Patrick Hand",cursive;font-size:.9rem;cursor:pointer}
+.abox-btn.prof{border-color:var(--gold);color:var(--gold)}
 .skill{
   width:100%;display:flex;align-items:center;gap:9px;padding:8px 4px;text-align:left;
   border-bottom:1px dashed var(--line);font-size:.92rem;
@@ -1215,10 +1217,12 @@ function renderStats(){
   <div class="card">
     <h2>Ability Scores <span class="grow"></span>${infoBtn('proficiency')}</h2>
     <div class="abilgrid">${ABS.map(a=>`
-      <div class="abox" style="padding:6px 4px 4px">
-        <div class="an">${a.n}</div><div class="as" style="margin-bottom:5px">score ${a.s}</div>
-        <button onclick="rollSkill('${a.n} Check',${a.m})" style="display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:7px;padding:4px 2px;margin-bottom:3px;color:var(--ink);font-family:'Patrick Hand',cursive;font-size:.95rem;cursor:pointer">Check ${fmt(a.m)}</button>
-        <button onclick="rollSkill('${a.n} Save',${a.sv})" style="display:block;width:100%;background:var(--card);border:1px solid ${a.p?'var(--gold)':'var(--line)'};border-radius:7px;padding:4px 2px;color:${a.p?'var(--gold)':'var(--dim)'};font-family:'Patrick Hand',cursive;font-size:.95rem;cursor:pointer">Save ${fmt(a.sv)}${a.p?' ●':''}</button>
+      <div class="abox" style="padding:8px 6px 6px">
+        <div class="an">${a.n}</div>
+        <div class="am">${fmt(a.m)}</div>
+        <div class="as">score ${a.s}</div>
+        <button class="abox-btn" onclick="rollSkill('${a.n} Check',${a.m})">Check ${fmt(a.m)}</button>
+        <button class="abox-btn${a.p?' prof':''}" onclick="rollSkill('${a.n} Save',${a.sv})">Save ${fmt(a.sv)}${a.p?' ●':''}</button>
       </div>`).join('')}
     </div>
     <div class="doodle">Tap Check or Save to roll d20 + that modifier. Gold ● = save proficiency.</div>
