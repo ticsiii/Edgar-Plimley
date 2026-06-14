@@ -587,7 +587,8 @@ const $ = id => document.getElementById(id);
 const fmt = n => (n>=0?'+':'')+n;
 let toastTimer;
 function toast(msg,ms=2600){ const t=$('toast'); t.innerHTML=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),ms); }
-function roll(sides){ return 1+Math.floor(Math.random()*sides); }
+function cryptoRandInt(max){ const a=new Uint32Array(1); crypto.getRandomValues(a); return a[0]%max; }
+function roll(sides){ return 1+cryptoRandInt(sides); }
 function rollDice(expr){ // "3d8" -> {total, rolls}
   const [n,s] = expr.split('d').map(Number); const rolls=[];
   for(let i=0;i<n;i++) rolls.push(roll(s));
@@ -697,7 +698,7 @@ function showRollCss({sides=20, die=null, mod=0, final, label='', detail='', cri
     diceTimers.push(setTimeout(hideRoll, 4000));
   };
   if(reducedMotion){ $('diceNum').textContent=final; finish(); return; }
-  diceCycle=setInterval(()=>{ $('diceNum').textContent=1+Math.floor(Math.random()*sides); },70);
+  diceCycle=setInterval(()=>{ $('diceNum').textContent=1+cryptoRandInt(sides); },70);
   later(()=>{
     clearInterval(diceCycle);
     $('diceNum').textContent=raw;            // act 1: the naked die result
@@ -715,7 +716,7 @@ function openSheet(html){ $('sheet').innerHTML = html; $('overlay').classList.ad
 function closeSheet(){ $('overlay').classList.remove('show'); $('sheet').classList.remove('show'); }
 function rollFamiliar(){
   let pick;
-  do { pick = FAMILIARS[Math.floor(Math.random()*FAMILIARS.length)]; }
+  do { pick = FAMILIARS[cryptoRandInt(FAMILIARS.length)]; }
   while (pick.n === lastFamiliar);
   lastFamiliar = pick.n;
   showFamiliarList(pick.n);
