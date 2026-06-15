@@ -6,10 +6,11 @@ Single-file web app (no build step). State lives in your browser's localStorage.
 
 ## What's inside
 
-- **Hub** — HP, hit dice, AC + Mage Armor toggle, Heroic Inspiration, spell slot & sorcery point pips, Font of Magic conversions, Wild Magic surge rolls, beginner cheat-buttons.
-- **Spells** — every spell as a card: rules, beginner tips, cast buttons that spend the right slot, attack & damage rolls (Innate Sorcery advantage handled automatically).
-- **Abilities** — Innate Sorcery, Tides of Chaos, Find Familiar free cast, Adrenaline Rush, Relentless Endurance, Metamagic with SP costs.
-- **Stats** — ability scores, saves, all 18 skills (tap to roll), weapons, proficiencies.
+- **Hub** — HP, hit dice, AC + Mage Armor toggle, Heroic Inspiration, spell slot & Wizarding Point pips, Font of Magic conversions, Wild Magic surge rolls, beginner cheat-buttons.
+- **Spells** — every spell as a card: rules, beginner tips, cast buttons that spend the right slot, attack & damage rolls.
+- **Abilities** — Tides of Chaos, Find Familiar free cast, Adrenaline Rush, Relentless Endurance, Metamagic with WP costs.
+- **Stats** — ability scores (tap to roll check or save), At a Glance card, all 18 skills (tap to roll), weapons, proficiencies.
+- **Inventory** — diamond / gold / silver / copper tracking, consumables (Pixie Dust, Devilweed), custom gear.
 - **Rest buttons** — Short/Long Rest reset the right resources.
 
 ## Deploy
